@@ -1,0 +1,173 @@
+import * as React from "react"
+import { Slot } from '@radix-ui/react-slot'
+import { cva } from 'class-variance-authority'
+
+import { cn } from '@/lib/utils'
+import { Separator } from '@/components/ui/separator'
+
+function ItemGroup({ className, ...props }) {
+  return (
+    <div
+      role="list"
+      data-slot="item-group"
+      className={cn('group/item-group flex flex-col', className)}
+      {...props}
+    />
+  )
+}
+
+function ItemSeparator({
+  className,
+  ...props
+}) {
+  return (
+    <Separator
+      data-slot="item-separator"
+      orientation="horizontal"
+      className={cn('my-0', className)}
+      {...props}
+    />
+  )
+}
+
+const itemVariants = cva(
+  'group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a&]:hover,
+  {
+    variants,
+        outline,
+        muted,
+      },
+      size,
+        sm,
+      },
+    },
+    defaultVariants,
+      size,
+    },
+  },
+)
+
+function Item({
+  className,
+  variant = 'default',
+  size = 'default',
+  asChild = false,
+  ...props
+}))}
+      {...props}
+    />
+  )
+}
+
+const itemMediaVariants = cva(
+  'flex shrink-0 items-center justify-center gap-2 group-has-[[data-slot=item-description]]/item=item-description]]/item,
+  {
+    variants,
+        icon='size-'])]:size-4",
+        image,
+      },
+    },
+    defaultVariants,
+    },
+  },
+)
+
+function ItemMedia({
+  className,
+  variant = 'default',
+  ...props
+}))}
+      {...props}
+    />
+  )
+}
+
+function ItemContent({ className, ...props }) {
+  return (
+    <div
+      data-slot="item-content"
+      className={cn(
+        'flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+function ItemTitle({ className, ...props }) {
+  return (
+    <div
+      data-slot="item-title"
+      className={cn(
+        'flex w-fit items-center gap-2 text-sm leading-snug font-medium',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+function ItemDescription({ className, ...props }) {
+  return (
+    <p
+      data-slot="item-description"
+      className={cn(
+        'text-muted-foreground line-clamp-2 text-sm leading-normal font-normal text-balance',
+        '[&>a,
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+function ItemActions({ className, ...props }) {
+  return (
+    <div
+      data-slot="item-actions"
+      className={cn('flex items-center gap-2', className)}
+      {...props}
+    />
+  )
+}
+
+function ItemHeader({ className, ...props }) {
+  return (
+    <div
+      data-slot="item-header"
+      className={cn(
+        'flex basis-full items-center justify-between gap-2',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+function ItemFooter({ className, ...props }) {
+  return (
+    <div
+      data-slot="item-footer"
+      className={cn(
+        'flex basis-full items-center justify-between gap-2',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+export {
+  Item,
+  ItemMedia,
+  ItemContent,
+  ItemActions,
+  ItemGroup,
+  ItemSeparator,
+  ItemTitle,
+  ItemDescription,
+  ItemHeader,
+  ItemFooter,
+}
+
