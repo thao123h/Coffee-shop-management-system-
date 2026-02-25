@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './lib/authContext';
+import { useAuth } from './lib/AuthContext';
+import AuthProvider from './lib/AuthProvider';
 import { CartProvider } from './lib/cartContext';
 import Login from './pages/Login';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -28,7 +29,7 @@ function PublicRoute({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+    <AuthProvider>
         <CartProvider>
           <Routes>
             {/* Public Routes */}
@@ -64,7 +65,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/login" />} />
           </Routes>
         </CartProvider>
-      </AuthProvider>
+   </AuthProvider>
     </BrowserRouter>
   );
 }
