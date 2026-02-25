@@ -2,14 +2,14 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package, Plus, Edit, Trash2, Search, ToggleLeft, ToggleRight, Loader2, AlertCircle } from "lucide-react";
 
-const API_BASE = "http://localhost:8080/products";
+const API_BASE = "http://localhost:8080/api/products";
 
 async function api(url, options = {}) {
   const token = localStorage.getItem("token");
   const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(token ? { Authorization: token } : {}),
     },
     ...options,
   });

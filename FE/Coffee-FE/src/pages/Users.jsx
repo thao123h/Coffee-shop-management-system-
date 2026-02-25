@@ -4,7 +4,7 @@ import {
   Loader2, AlertCircle, ShieldCheck, User as UserIcon, Eye, EyeOff
 } from "lucide-react";
 
-const API_BASE = "http://localhost:8080/users";
+const API_BASE = "http://localhost:8080/api/users";
 const ROLES = ["STAFF", "MANAGER", "ADMIN"];
 
 const ROLE_STYLES = {
@@ -18,7 +18,7 @@ async function api(url, options = {}) {
   const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(token ? { Authorization: token } : {}),
     },
     ...options,
   });

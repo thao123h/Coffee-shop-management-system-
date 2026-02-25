@@ -5,14 +5,14 @@ import {
     ToggleLeft, ToggleRight, Loader2, AlertCircle
 } from "lucide-react";
 
-const API_BASE = "http://localhost:8080/toppings";
+const API_BASE = "http://localhost:8080/api/toppings";
 
 async function api(url, options = {}) {
     const token = localStorage.getItem("token");
     const res = await fetch(url, {
         headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token ? { Authorization: token } : {}),
         },
         ...options,
     });
@@ -293,8 +293,8 @@ export default function Toppings() {
                                         <td className="px-6 py-4 text-center">
                                             <span
                                                 className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${topping.isActive
-                                                        ? "bg-green-100 text-green-700"
-                                                        : "bg-gray-100 text-gray-500"
+                                                    ? "bg-green-100 text-green-700"
+                                                    : "bg-gray-100 text-gray-500"
                                                     }`}
                                             >
                                                 {topping.isActive ? "● Active" : "○ Inactive"}

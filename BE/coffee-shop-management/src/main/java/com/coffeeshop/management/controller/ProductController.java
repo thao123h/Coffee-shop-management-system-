@@ -24,13 +24,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
-    @GetMapping
-    public ResponseEntity<ApiResponse> getAllProducts() {
-        List<Product> products = productService.findAll();
-        return ResponseEntity.ok( ApiResponse.success(products));
-    }
-
-    private final ProductService productService;
     private final CategoryService categoryService;
 
     /** GET /products — Lấy tất cả sản phẩm */
