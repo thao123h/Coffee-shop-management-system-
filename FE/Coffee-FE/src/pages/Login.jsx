@@ -1,31 +1,45 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/authContext";
+import { useContext } from "react";
+
 import { Coffee, Lock, User } from "lucide-react";
+import { loginApi } from "../api/Api";
+import { AuthContext } from "../lib/AuthContext";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
     if (!username || !password) {
       setError("Please enter both username and password");
       return;
     }
+    // diagnostic log to confirm handler is called
+    console.log("Login submit pressed", { username, password });
 
-    const success = login(username, password);
-    if (success) {
-      navigate("/dashboard");
-    } else {
-      setError("Invalid credentials");
+    try {
+      const user = await loginApi(username, password);
+      console.log("loginApi response", user);
+      login(user);
+      if (user) {
+        navigate("/dashboard");
+      } else {
+        setError("Invalid credentials");
+      }
+    } catch (err) {
+      console.error("Error calling loginApi", err);
+      setError(
+        err?.response?.data?.message || "Failed to call login API. Check console."
+      );
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center p-4">

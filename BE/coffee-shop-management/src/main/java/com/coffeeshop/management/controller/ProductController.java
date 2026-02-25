@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/products")
 @RequiredArgsConstructor
 public class ProductController {
+    private final ProductService productService;
+    @GetMapping
+    public ResponseEntity<ApiResponse> getAllProducts() {
+        List<Product> products = productService.findAll();
+        return ResponseEntity.ok( ApiResponse.success(products));
+    }
 
     private final ProductService productService;
     private final CategoryService categoryService;
