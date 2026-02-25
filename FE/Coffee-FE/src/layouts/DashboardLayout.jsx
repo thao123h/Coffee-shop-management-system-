@@ -27,6 +27,7 @@ export default function DashboardLayout() {
     { path: "/dashboard/orders", icon: ShoppingBag, label: "Orders" },
     { path: "/dashboard/products", icon: Package, label: "Products" },
     { path: "/dashboard/categories", icon: Tag, label: "Categories" },
+    { path: "/dashboard/toppings", icon: Coffee, label: "Toppings" },
     { path: "/dashboard/payments", icon: CreditCard, label: "Payments" },
     { path: "/dashboard/users", icon: Users, label: "Users" },
     { path: "/dashboard/vouchers", icon: Ticket, label: "Vouchers" },
@@ -41,9 +42,8 @@ export default function DashboardLayout() {
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <aside
-        className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 flex flex-col`}
+        className={`${sidebarOpen ? "w-64" : "w-20"
+          } bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 flex flex-col`}
       >
         {/* Logo & Toggle */}
         <div className="p-4 flex items-center justify-between border-b border-gray-700">
@@ -71,11 +71,10 @@ export default function DashboardLayout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 ${isActive
                     ? "bg-amber-600 text-white shadow-lg"
                     : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                }`}
+                  }`}
               >
                 <Icon size={20} />
                 {sidebarOpen && (
