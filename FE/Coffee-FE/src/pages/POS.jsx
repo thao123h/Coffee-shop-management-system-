@@ -72,36 +72,36 @@ export default function POS() {
               <button
                 key={product.id}
                 onClick={() => handleProductSelect(product)}
-                className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-[1.02] transform text-left relative"
+                className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-[1.02] transform text-left relative h-full flex flex-col"
               >
                 {/* Image Container with Overlay */}
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-hidden h-48 flex-shrink-0 border-b-2 border-gray-100">
                   <img
                     src={product.imageUrl}
                     alt={product.name}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
                 {/* Content */}
-                <div className="p-5">
-                  <h3 className="font-bold text-gray-900 mb-2 text-lg group-hover:text-amber-700 transition-colors">
+                <div className="p-5 flex flex-col flex-grow">
+                  <h3 className="font-bold text-gray-900 mb-2 text-lg group-hover:text-amber-700 transition-colors line-clamp-2">
                     {product.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-grow">
                     {product.description}
                   </p>
 
                   {/* Price Badge */}
-                  {/* <div className="flex items-center justify-between">
-                    <div className="text-3xl font-bold text-amber-600">
-                      ${product.price.toFixed(2)}
-                    </div>
+                  <div className="flex items-center justify-between">
+                    {/* <div className="text-2xl font-bold text-amber-600">
+                      ₫{product.price?.toLocaleString()}
+                    </div> */}
                     <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                      Add
+                      Thêm
                     </div>
-                  </div> */}
+                  </div>
                 </div>
               </button>
             ))}
