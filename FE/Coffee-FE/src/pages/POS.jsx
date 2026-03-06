@@ -2,14 +2,31 @@ import React, { useState, useRef } from "react";
 import { useCart } from "../lib/cartContext";
 import { CoffeeModal } from "../components/CoffeeModal";
 import { CoffeeBillingPanel } from "../components/CoffeeBillingPanel";
-import { products } from "../lib/mockProducts";
+import { getAllProducts } from "../service/ProductService";
+import { useEffect } from "react";
 import { Search } from "lucide-react";
 
 export default function POS() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { addItem } = useCart();
+
+  const [products, setProducts] = useState([]); // This will hold the products fetched from the API
   const printRef = useRef(null);
+
+
+  useEffect(() => {
+    const  fetchProducts = async () => {
+      try {
+        const res = await getAllProducts();
+        setProducts(res.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -60,7 +77,7 @@ export default function POS() {
                 {/* Image Container with Overlay */}
                 <div className="relative overflow-hidden">
                   <img
-                    src={product.image}
+                    src={product.imageUrl}
                     alt={product.name}
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -77,14 +94,14 @@ export default function POS() {
                   </p>
 
                   {/* Price Badge */}
-                  <div className="flex items-center justify-between">
+                  {/* <div className="flex items-center justify-between">
                     <div className="text-3xl font-bold text-amber-600">
                       ${product.price.toFixed(2)}
                     </div>
                     <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold group-hover:bg-amber-600 group-hover:text-white transition-colors">
                       Add
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </button>
             ))}

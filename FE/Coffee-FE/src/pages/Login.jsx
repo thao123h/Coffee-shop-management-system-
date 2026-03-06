@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 
 import { Coffee, Lock, User } from "lucide-react";
-import { loginApi } from "../api/Api";
+import { loginApi } from "../service/AuthService";
 import { AuthContext } from "../lib/AuthContext";
 
 export default function Login() {
