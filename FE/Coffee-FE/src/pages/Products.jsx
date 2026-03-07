@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Package, Plus, Edit, Trash2 } from "lucide-react";
+import { Pagination } from "../components/Pagination";
 
 export default function Products() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+  
   const products = [
     {
       id: 1,
@@ -39,6 +43,10 @@ export default function Products() {
         "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=200",
     },
   ];
+  
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = products.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="p-8">
@@ -59,7 +67,7 @@ export default function Products() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => (
+        {paginatedProducts.map((product) => (
           <div
             key={product.id}
             className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden border border-gray-200"
@@ -109,6 +117,12 @@ export default function Products() {
           </div>
         ))}
       </div>
+      
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

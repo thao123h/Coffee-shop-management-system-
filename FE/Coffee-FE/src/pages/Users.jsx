@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Users, Plus, Edit, Trash2, Shield } from "lucide-react";
+import { Pagination } from "../components/Pagination";
 
 export default function UsersPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  
   const users = [
     {
       id: 1,
@@ -36,6 +40,10 @@ export default function UsersPage() {
       joined: "2024-04-05",
     },
   ];
+  
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = users.slice(startIndex, startIndex + itemsPerPage);
 
   const getRoleBadge = (role) => {
     switch (role) {
@@ -95,7 +103,7 @@ export default function UsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {users.map((user) => (
+            {paginatedUsers.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
@@ -147,6 +155,12 @@ export default function UsersPage() {
           </tbody>
         </table>
       </div>
+      
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

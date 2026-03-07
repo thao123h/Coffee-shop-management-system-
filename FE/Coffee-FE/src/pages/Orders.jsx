@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { ShoppingBag, Eye, Printer } from "lucide-react";
+import { Pagination } from "../components/Pagination";
 
 export default function Orders() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  
   const orders = [
     {
       id: "#ORD-001",
@@ -36,6 +40,10 @@ export default function Orders() {
       date: "2026-02-24 15:15",
     },
   ];
+  
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedOrders = orders.slice(startIndex, startIndex + itemsPerPage);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -92,7 +100,7 @@ export default function Orders() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {orders.map((order) => (
+            {paginatedOrders.map((order) => (
               <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">
                   {order.id}
@@ -131,6 +139,12 @@ export default function Orders() {
           </tbody>
         </table>
       </div>
+      
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Tag, Plus, Edit, Trash2 } from "lucide-react";
+import { Pagination } from "../components/Pagination";
 
 export default function Categories() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  
   const categories = [
     {
       id: 1,
@@ -18,6 +22,10 @@ export default function Categories() {
       count: 10,
     },
   ];
+  
+  const totalPages = Math.ceil(categories.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCategories = categories.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="p-8">
@@ -38,7 +46,7 @@ export default function Categories() {
 
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map((category) => (
+        {paginatedCategories.map((category) => (
           <div
             key={category.id}
             className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border border-gray-200"
@@ -72,6 +80,12 @@ export default function Categories() {
           </div>
         ))}
       </div>
+      
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
