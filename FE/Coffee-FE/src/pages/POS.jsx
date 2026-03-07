@@ -64,7 +64,7 @@
               />
               <input
                 type="text"
-                placeholder="Search coffee..."
+                placeholder="Search coffee by name..."
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-gray-500"

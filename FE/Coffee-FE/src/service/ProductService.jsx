@@ -1,12 +1,12 @@
 import axiosClient from "./axiosClient";
 
-export const getAllProducts = async (page = 0, size = 10, search = "") => {
+export const getAllProducts = async (page = 0, size = 10, keyword = "") => {
   try {
     const res = await axiosClient.get("/products", {
       params: {
         page: page,
         size: size,
-        search: search,
+        keyword: keyword,
       },
     });
     return res.data;
@@ -25,3 +25,4 @@ export const getAllToppings = async () => {
     throw err;
   }
 };
+
