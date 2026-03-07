@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useCart } from "../lib/cartContext";
+import { t } from "../i18n";
+import { useCart } from "../lib/CartContext";
 import {
   Trash2,
   Printer,
@@ -42,9 +43,9 @@ export function CoffeeBillingPanel({ onPrint }) {
   };
 
   const paymentMethods = [
-    { id: "cash", label: "Cash", icon: DollarSign },
-    { id: "card", label: "Card", icon: CreditCard },
-    { id: "mobile", label: "Mobile", icon: Smartphone },
+    { id: "cash", label: t('cash'), icon: DollarSign },
+    { id: "card", label: t('card'), icon: CreditCard },
+    { id: "mobile", label: t('mobile'), icon: Smartphone },
   ];
 
   return (
@@ -54,9 +55,9 @@ export function CoffeeBillingPanel({ onPrint }) {
         <div className="flex items-center gap-3">
           <ShoppingBag size={24} strokeWidth={2.5} />
           <div>
-            <h2 className="text-xl font-bold">Cart</h2>
+            <h2 className="text-xl font-bold">{t('cart')}</h2>
             <p className="text-amber-100 text-xs">
-              {items.length} {items.length === 1 ? "item" : "items"}
+              {items.length} {items.length === 1 ? t('item') : t('items')}
             </p>
           </div>
         </div>
@@ -69,8 +70,8 @@ export function CoffeeBillingPanel({ onPrint }) {
             <div className="bg-gray-200 rounded-full p-8 mb-3">
               <ShoppingBag size={40} className="text-gray-400" />
             </div>
-            <h3 className="text-lg font-bold text-gray-700">Cart is empty</h3>
-            <p className="text-sm text-gray-500">Add items to get started</p>
+            <h3 className="text-lg font-bold text-gray-700">{t('cartIsEmpty')}</h3>
+            <p className="text-sm text-gray-500">{t('addItems')}</p>
           </div>
         ) : (
           items.map((item) => {
@@ -99,7 +100,7 @@ export function CoffeeBillingPanel({ onPrint }) {
                   <button
                     onClick={() => removeItem(item.id)}
                     className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition"
-                    title="Remove item"
+                    title={t('removeItem')}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -151,17 +152,17 @@ export function CoffeeBillingPanel({ onPrint }) {
       <div className="bg-white border-t-2 border-gray-200 p-4">
         <div className="space-y-2 mb-3">
           <div className="flex justify-between text-gray-700 text-sm">
-            <span>Subtotal:</span>
+            <span>{t('subtotal')}</span>
             <span className="font-semibold">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-gray-700 text-sm">
-            <span>Tax (10%):</span>
+            <span>{t('tax')}</span>
             <span className="font-semibold">${tax.toFixed(2)}</span>
           </div>
         </div>
         <div className="pt-3 border-t border-gray-300">
           <div className="flex justify-between items-center">
-            <span className="text-lg font-bold text-gray-900">Total:</span>
+            <span className="text-lg font-bold text-gray-900">{t('totalAmount')}</span>
             <span className="text-2xl font-bold text-amber-600">
               ${total.toFixed(2)}
             </span>
@@ -172,7 +173,7 @@ export function CoffeeBillingPanel({ onPrint }) {
       {/* Payment Methods - Compact */}
       <div className="border-t p-4 bg-gray-50">
         <p className="text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
-          Payment
+          {t('payment')}
         </p>
         <div className="grid grid-cols-3 gap-2">
           {paymentMethods.map((method) => {
@@ -203,13 +204,13 @@ export function CoffeeBillingPanel({ onPrint }) {
           className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:scale-100 disabled:shadow-none"
         >
           <Printer size={20} strokeWidth={2.5} />
-          Complete Order
+          {t('completeOrder')}
         </button>
         {items.length > 0 && (
           <p className="text-xs text-center text-gray-500 mt-2">
-            {paymentMethod === "cash" && "💵 Cash payment"}
-            {paymentMethod === "card" && "💳 Card payment"}
-            {paymentMethod === "mobile" && "📱 Mobile payment"}
+            {paymentMethod === "cash" && t('cashPayment')}
+            {paymentMethod === "card" && t('cardPayment')}
+            {paymentMethod === "mobile" && t('mobilePayment')}
           </p>
         )}
       </div>

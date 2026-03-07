@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { t } from "../i18n";
 import { ShoppingBag, Eye, Printer } from "lucide-react";
 import { Pagination } from "../components/Pagination";
 
@@ -65,9 +66,9 @@ export default function Orders() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <ShoppingBag className="text-amber-600" size={32} />
-            Orders
+            {t('ordersPageTitle')}
           </h1>
-          <p className="text-gray-600 mt-1">View and manage customer orders</p>
+          <p className="text-gray-600 mt-1">{t('viewManageOrders')}</p>
         </div>
       </div>
 
@@ -77,25 +78,25 @@ export default function Orders() {
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                Order ID
+                {t('orderID')}
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                Customer
+                {t('customer')}
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                Items
+                {t('items')}
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                Total
+                {t('total')}
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                Status
+                {t('status')}
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                Date
+                {t('date')}
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                Actions
+                {t('actions')}
               </th>
             </tr>
           </thead>
@@ -118,7 +119,7 @@ export default function Orders() {
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}
                   >
-                    {order.status}
+                    {order.status === "completed" ? "Hoàn thành" : order.status === "pending" ? "Chờ" : order.status === "processing" ? "Đang xử lý" : order.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">

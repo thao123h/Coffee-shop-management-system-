@@ -1,10 +1,11 @@
   import React, { useState, useRef, useEffect } from "react";
-  import { useCart } from "../lib/cartContext";
+import { t } from "../i18n";
   import { CoffeeModal } from "../components/CoffeeModal";
   import { CoffeeBillingPanel } from "../components/CoffeeBillingPanel";
   import { getAllProducts } from "../service/ProductService";
   import { Search } from "lucide-react";
   import { Pagination } from "../components/Pagination";
+  import { useCart } from "../lib/CartContext";
 
   export default function POS() {
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -64,7 +65,7 @@
               />
               <input
                 type="text"
-                placeholder="Search coffee by name..."
+                placeholder={t('searchCoffee')}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-gray-500"
@@ -121,10 +122,10 @@
                     <Search size={64} className="text-gray-400" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-700 mb-2">
-                    No coffee found
+                    {t('noCoffeeFound')}
                   </h3>
                   <p className="text-gray-500">
-                    Try searching with a different keyword
+                    {t('tryDifferentKeyword')}
                   </p>
                 </div>
               )}

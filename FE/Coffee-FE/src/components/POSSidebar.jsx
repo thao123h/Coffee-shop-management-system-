@@ -1,5 +1,5 @@
 import { Coffee, Trash2, ShoppingCart, Hash } from "lucide-react";
-import { useCart } from "../lib/cartContext";
+import { useCart } from "../lib/CartContext";
 
 export function POSSidebar({ orderNumber = 1001, onClearCart }) {
   const { items } = useCart();

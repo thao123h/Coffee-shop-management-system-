@@ -52,7 +52,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }) {
         className="flex items-center gap-1 px-3 py-2 rounded-lg bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronLeft size={18} />
-        <span className="hidden sm:inline">Previous</span>
+        <span className="hidden sm:inline">Trước</span>
       </button>
 
       <div className="flex items-center gap-1">
@@ -79,7 +79,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }) {
         disabled={currentPage === totalPages}
         className="flex items-center gap-1 px-3 py-2 rounded-lg bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        <span className="hidden sm:inline">Next</span>
+        <span className="hidden sm:inline">Sau</span>
         <ChevronRight size={18} />
       </button>
 

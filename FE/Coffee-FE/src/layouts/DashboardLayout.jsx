@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { t } from "../i18n";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/authContext";
 import {
@@ -22,14 +23,14 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const menuItems = [
-    { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { path: "/dashboard/pos", icon: Coffee, label: "POS" },
-    { path: "/dashboard/orders", icon: ShoppingBag, label: "Orders" },
-    { path: "/dashboard/products", icon: Package, label: "Products" },
-    { path: "/dashboard/categories", icon: Tag, label: "Categories" },
-    { path: "/dashboard/payments", icon: CreditCard, label: "Payments" },
-    { path: "/dashboard/users", icon: Users, label: "Users" },
-    { path: "/dashboard/vouchers", icon: Ticket, label: "Vouchers" },
+    { path: "/dashboard", icon: LayoutDashboard, label: t('dashboard') },
+    { path: "/dashboard/pos", icon: Coffee, label: t('pos') },
+    { path: "/dashboard/orders", icon: ShoppingBag, label: t('orders') },
+    { path: "/dashboard/products", icon: Package, label: t('products') },
+    { path: "/dashboard/categories", icon: Tag, label: t('categories') },
+    { path: "/dashboard/payments", icon: CreditCard, label: t('payments') },
+    { path: "/dashboard/users", icon: Users, label: t('users') },
+    { path: "/dashboard/vouchers", icon: Ticket, label: t('vouchers') },
   ];
 
   const handleLogout = () => {
@@ -50,7 +51,7 @@ export default function DashboardLayout() {
           {sidebarOpen && (
             <div className="flex items-center gap-2">
               <Coffee size={28} className="text-amber-500" />
-              <span className="font-bold text-xl">Coffee POS</span>
+              <span className="font-bold text-xl">{t('coffeePOS')}</span>
             </div>
           )}
           <button
@@ -108,7 +109,7 @@ export default function DashboardLayout() {
                 className="w-full flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
               >
                 <LogOut size={20} />
-                <span className="font-medium">Logout</span>
+                <span className="font-medium">{t('logout')}</span>
               </button>
             </div>
           ) : (
