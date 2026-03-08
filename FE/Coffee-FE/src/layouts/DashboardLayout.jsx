@@ -23,14 +23,19 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const menuItems = [
-    { path: "/dashboard", icon: LayoutDashboard, label: t('dashboard') },
-    { path: "/dashboard/pos", icon: Coffee, label: t('pos') },
-    { path: "/dashboard/orders", icon: ShoppingBag, label: t('orders') },
-    { path: "/dashboard/products", icon: Package, label: t('products') },
-    { path: "/dashboard/categories", icon: Tag, label: t('categories') },
-    { path: "/dashboard/payments", icon: CreditCard, label: t('payments') },
-    { path: "/dashboard/users", icon: Users, label: t('users') },
-    { path: "/dashboard/vouchers", icon: Ticket, label: t('vouchers') },
+    { path: "/dashboard", icon: LayoutDashboard, label: t("dashboard") },
+    { path: "/dashboard/pos", icon: Coffee, label: t("pos") },
+    { path: "/dashboard/orders", icon: ShoppingBag, label: t("orders") },
+    { path: "/dashboard/products", icon: Package, label: t("products") },
+    { path: "/dashboard/categories", icon: Tag, label: t("categories") },
+    { path: "/dashboard/toppings", icon: Coffee, label: t("toppings") },
+    { path: "/dashboard/payments", icon: CreditCard, label: t("payments") },
+    {
+      path: "/dashboard/users",
+      icon: Users,
+      label: user?.role === "MANAGER" ? "Staff" : t("users"),
+    },
+    { path: "/dashboard/vouchers", icon: Ticket, label: t("vouchers") },
   ];
 
   const handleLogout = () => {
@@ -42,16 +47,15 @@ export default function DashboardLayout() {
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <aside
-        className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 flex flex-col`}
+        className={`${sidebarOpen ? "w-64" : "w-20"
+          } bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 flex flex-col`}
       >
         {/* Logo & Toggle */}
         <div className="p-4 flex items-center justify-between border-b border-gray-700">
           {sidebarOpen && (
             <div className="flex items-center gap-2">
               <Coffee size={28} className="text-amber-500" />
-              <span className="font-bold text-xl">{t('coffeePOS')}</span>
+              <span className="font-bold text-xl">{t("coffeePOS")}</span>
             </div>
           )}
           <button
@@ -72,11 +76,10 @@ export default function DashboardLayout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 ${isActive
                     ? "bg-amber-600 text-white shadow-lg"
                     : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                }`}
+                  }`}
               >
                 <Icon size={20} />
                 {sidebarOpen && (
@@ -109,7 +112,7 @@ export default function DashboardLayout() {
                 className="w-full flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
               >
                 <LogOut size={20} />
-                <span className="font-medium">{t('logout')}</span>
+                <span className="font-medium">{t("logout")}</span>
               </button>
             </div>
           ) : (
