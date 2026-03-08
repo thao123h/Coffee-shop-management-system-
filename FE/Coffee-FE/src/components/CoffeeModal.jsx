@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { t } from "../i18n";
-import { toppings as allToppings } from "../lib/mockProducts";
+import { getAllToppings } from "../service/ToppingService";
 import { X, Plus, Minus } from "lucide-react";
 
 export function CoffeeModal({ product, onClose, onAddToCart }) {
@@ -9,6 +9,19 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
   const [selectedToppings, setSelectedToppings] = useState([]);
   const [notes, setNotes] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [allToppings, setAllToppings] = useState([]);
+  useEffect(() => {
+    // Simulate an API call to fetch all toppings
+    const fetchToppings = async () => {
+      try {
+        const toppings = await getAllToppings();
+        setAllToppings(toppings.data);
+      } catch (error) {
+        console.error("Error fetching toppings:", error);
+      }
+    };
+    fetchToppings();
+  }, []);
 
   if (!product) return null;
 
@@ -40,13 +53,16 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
     onClose();
   };
 
+
+
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto transform transition-all animate-in zoom-in-95 duration-300">
         {/* Modern Header with Image Background */}
         <div className="relative h-48 overflow-hidden">
           <img
-            src={product.image}
+            src={product.imageUrl}
             alt={product.name}
             className="w-full h-full object-cover"
           />
