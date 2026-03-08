@@ -29,7 +29,6 @@ public class ProductController {
 
     /** GET /products — Lấy tất cả sản phẩm */
     @GetMapping
-
     public ResponseEntity<ApiResponse> getAllProducts(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,

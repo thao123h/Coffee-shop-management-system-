@@ -1,6 +1,9 @@
 package com.coffeeshop.management.service;
 
+import com.coffeeshop.management.dto.response.ProductVariantResponse;
 import com.coffeeshop.management.entity.ProductVariant;
+import com.coffeeshop.management.mapper.ProductVariantMapper;
+import com.coffeeshop.management.repository.ProductRepository;
 import com.coffeeshop.management.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,13 +17,16 @@ import java.util.Optional;
 public class ProductVariantService {
 
     private final ProductVariantRepository productVariantRepository;
+    private final ProductVariantMapper productVariantMapper;
 
     public List<ProductVariant> findAll() {
         return productVariantRepository.findAll();
     }
 
-    public List<ProductVariant> findByProductId(Long productId) {
-        return productVariantRepository.findByProductIdAndIsActiveTrue(productId);
+
+    public List<ProductVariantResponse> findProductVariantsByProductId(Long productId) {
+        List<ProductVariant>  list = productVariantRepository.findByProductId(productId);
+        return productVariantMapper.toResponseList(list);
     }
 
     public Optional<ProductVariant> findById(Long id) {
