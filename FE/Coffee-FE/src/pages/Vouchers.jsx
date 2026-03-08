@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Ticket, Plus, Edit, Trash2, Percent } from "lucide-react";
+import { Pagination } from "../components/Pagination";
 
 export default function Vouchers() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  
   const vouchers = [
     {
       id: 1,
@@ -48,6 +52,10 @@ export default function Vouchers() {
       expires: "2026-05-01",
     },
   ];
+  
+  const totalPages = Math.ceil(vouchers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedVouchers = vouchers.slice(startIndex, startIndex + itemsPerPage);
 
   const getTypeBadge = (type) => {
     switch (type) {
@@ -83,7 +91,7 @@ export default function Vouchers() {
 
       {/* Vouchers Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {vouchers.map((voucher) => (
+        {paginatedVouchers.map((voucher) => (
           <div
             key={voucher.id}
             className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border border-gray-200"
@@ -162,6 +170,12 @@ export default function Vouchers() {
           </div>
         ))}
       </div>
+      
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
+import { t } from "../i18n";
 
 import { Coffee, Lock, User } from "lucide-react";
-import { loginApi } from "../api/Api";
+import { loginApi } from "../service/AuthService";
 import { AuthContext } from "../lib/AuthContext";
 
 export default function Login() {
@@ -17,7 +18,7 @@ export default function Login() {
     e.preventDefault();
 
     if (!username || !password) {
-      setError("Please enter both username and password");
+      setError(t('pleaseEnterBoth'));
       return;
     }
     // diagnostic log to confirm handler is called
@@ -30,7 +31,7 @@ export default function Login() {
       if (user) {
         navigate("/dashboard");
       } else {
-        setError("Invalid credentials");
+        setError(t('invalidCredentials'));
       }
     } catch (err) {
       console.error("Error calling loginApi", err);
@@ -49,8 +50,8 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-600 to-amber-700 rounded-2xl shadow-lg mb-4">
             <Coffee size={40} className="text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Coffee POS</h1>
-          <p className="text-gray-600">Sign in to manage your coffee shop</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('coffeePOS')}</h1>
+          <p className="text-gray-600">{t('signInManage')}</p>
         </div>
 
         {/* Login Card */}
@@ -59,7 +60,7 @@ export default function Login() {
             {/* Username Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Username
+                {t('username')}
               </label>
               <div className="relative">
                 <User
@@ -71,7 +72,7 @@ export default function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-gray-400"
-                  placeholder="Enter your username"
+                  placeholder={t('enterYourUsername')}
                 />
               </div>
             </div>
@@ -79,7 +80,7 @@ export default function Login() {
             {/* Password Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
+                {t('password')}
               </label>
               <div className="relative">
                 <Lock
@@ -91,7 +92,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-gray-400"
-                  placeholder="Enter your password"
+                  placeholder={t('enterYourPassword')}
                 />
               </div>
             </div>
@@ -108,21 +109,21 @@ export default function Login() {
               type="submit"
               className="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold py-3 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] transform"
             >
-              Sign In
+              {t('signIn')}
             </button>
           </form>
 
           {/* Demo Credentials */}
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              Demo: Enter any username and password to login
+              {t('demoCredentials')}
             </p>
           </div>
         </div>
 
         {/* Footer */}
         <p className="text-center text-gray-600 mt-6 text-sm">
-          © 2026 Coffee POS System. All rights reserved.
+          © 2026 Hệ thống Coffee POS. Đã đăng ký bản quyền.
         </p>
       </div>
     </div>

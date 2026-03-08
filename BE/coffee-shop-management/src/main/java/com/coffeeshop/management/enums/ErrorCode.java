@@ -9,8 +9,8 @@ public enum ErrorCode {
     // COMMON
     BAD_REQUEST("COMMON_400", "Bad request"),
     NOT_FOUND("COMMON_404", "Resource not found"),
-    INTERNAL_ERROR("COMMON_500", "Internal server error");
-
+    INTERNAL_ERROR("COMMON_500", "Internal server error"),
+    USER_NOT_FOUND("COMMON_401", "User not found ");
     private final String code;
     private final String defaultMessage;
 

@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
+import { t } from "../i18n";
 import { Package, Plus, Edit, Trash2 } from "lucide-react";
+import { Pagination } from "../components/Pagination";
 
 export default function Products() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+  
   const products = [
     {
       id: 1,
@@ -39,6 +44,10 @@ export default function Products() {
         "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=200",
     },
   ];
+  
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = products.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="p-8">
@@ -47,19 +56,19 @@ export default function Products() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Package className="text-amber-600" size={32} />
-            Products
+            {t('productsPageTitle')}
           </h1>
-          <p className="text-gray-600 mt-1">Manage your product inventory</p>
+          <p className="text-gray-600 mt-1">{t('manageInventory')}</p>
         </div>
         <button className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-3 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg hover:shadow-xl">
           <Plus size={20} />
-          Add Product
+          {t('addProduct')}
         </button>
       </div>
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => (
+        {paginatedProducts.map((product) => (
           <div
             key={product.id}
             className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden border border-gray-200"
@@ -83,7 +92,7 @@ export default function Products() {
               </div>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm text-gray-600">
-                  Stock: {product.stock}
+                  {t('stock')}: {product.stock}
                 </span>
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -92,23 +101,29 @@ export default function Products() {
                       : "bg-yellow-100 text-yellow-700"
                   }`}
                 >
-                  {product.stock > 50 ? "In Stock" : "Low Stock"}
+                  {product.stock > 50 ? t('inStock') : t('lowStock')}
                 </span>
               </div>
               <div className="flex gap-2">
                 <button className="flex-1 flex items-center justify-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
                   <Edit size={16} />
-                  Edit
+                  {t('edit')}
                 </button>
                 <button className="flex-1 flex items-center justify-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors">
                   <Trash2 size={16} />
-                  Delete
+                  {t('delete')}
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
+      
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

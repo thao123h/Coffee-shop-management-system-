@@ -1,4 +1,5 @@
 import React from "react";
+import { t } from "../i18n";
 import {
   TrendingUp,
   DollarSign,
@@ -12,7 +13,7 @@ import {
 export default function Dashboard() {
   const stats = [
     {
-      label: "Total Revenue",
+      label: "Doanh thu",
       value: "$12,459",
       change: "+12.5%",
       trend: "up",
@@ -20,7 +21,7 @@ export default function Dashboard() {
       color: "bg-green-500",
     },
     {
-      label: "Total Orders",
+      label: "Đơn hàng",
       value: "1,249",
       change: "+8.3%",
       trend: "up",
@@ -28,7 +29,7 @@ export default function Dashboard() {
       color: "bg-blue-500",
     },
     {
-      label: "Total Customers",
+      label: "Khách hàng",
       value: "856",
       change: "+15.2%",
       trend: "up",
@@ -36,7 +37,7 @@ export default function Dashboard() {
       color: "bg-purple-500",
     },
     {
-      label: "Total Products",
+      label: "Sản phẩm",
       value: "142",
       change: "-2.1%",
       trend: "down",
@@ -100,9 +101,9 @@ export default function Dashboard() {
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('dashboardOverview')}</h1>
         <p className="text-gray-600 mt-1">
-          Welcome back! Here's what's happening today.
+          {t('welcomeBack')}
         </p>
       </div>
 
@@ -146,7 +147,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <ShoppingBag className="text-amber-600" size={24} />
-            Recent Orders
+            Đơn hàng gần đây
           </h2>
           <div className="space-y-3">
             {recentOrders.map((order) => (
@@ -162,7 +163,7 @@ export default function Dashboard() {
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}
                   >
-                    {order.status}
+                    {order.status === "completed" ? "Hoàn thành" : order.status === "pending" ? "Chờ" : order.status === "processing" ? "Đang xử lý" : order.status}
                   </span>
                   <div className="text-right">
                     <p className="font-bold text-gray-900">
@@ -180,7 +181,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <TrendingUp className="text-amber-600" size={24} />
-            Top Products
+            Sản phẩm bán chạy
           </h2>
           <div className="space-y-4">
             {topProducts.map((product, index) => (
@@ -190,13 +191,13 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-gray-900">{product.name}</p>
-                  <p className="text-sm text-gray-600">{product.sales} sales</p>
+                  <p className="text-sm text-gray-600">{product.sales} lượt bán</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-gray-900">
                     ${product.revenue.toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-500">Revenue</p>
+                  <p className="text-xs text-gray-500">Doanh thu</p>
                 </div>
               </div>
             ))}

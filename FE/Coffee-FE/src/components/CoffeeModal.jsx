@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "../i18n";
 import { toppings as allToppings } from "../lib/mockProducts";
 import { X, Plus, Minus } from "lucide-react";
 
@@ -68,7 +69,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
           <div>
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <span className="text-lg">🌡️</span>
-              Temperature
+              {t('temperature')}
             </h3>
             <div className="grid grid-cols-2 gap-3">
               {["hot", "iced"].map((temp) => (
@@ -81,7 +82,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  {temp === "hot" ? "☕ Hot" : "🧊 Iced"}
+                  {temp === "hot" ? `☕ ${t('hot')}` : `🧊 ${t('iced')}`}
                 </button>
               ))}
             </div>
@@ -91,7 +92,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
           <div>
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <span className="text-lg">📏</span>
-              Size
+              {t('size')}
             </h3>
             <div className="grid grid-cols-3 gap-3">
               {["S", "M", "L"].map((sizeOption) => (
@@ -104,7 +105,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  {sizeOption}
+                  {t(`size${sizeOption}`)}
                 </button>
               ))}
             </div>
@@ -114,9 +115,9 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
           <div>
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <span className="text-lg">🧁</span>
-              Toppings
+              {t('toppings')}
               <span className="text-xs text-gray-500 font-normal">
-                (optional)
+                {t('optional')}
               </span>
             </h3>
             <div className="space-y-2">
@@ -145,7 +146,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
           <div>
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <span className="text-lg">📝</span>
-              Special Instructions
+              {t('specialInstructions')}
             </h3>
             <textarea
               value={notes}
@@ -160,7 +161,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
           <div>
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <span className="text-lg">🔢</span>
-              Quantity
+              {t('quantity')}
             </h3>
             <div className="flex items-center gap-4 bg-gray-100 rounded-xl p-2 w-fit">
               <button
@@ -185,7 +186,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
         {/* Footer */}
         <div className="sticky bottom-0 bg-gradient-to-t from-white via-white to-transparent border-t-2 border-gray-200 p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-gray-700 text-lg font-semibold">Total:</span>
+            <span className="text-gray-700 text-lg font-semibold">{t('total')}</span>
             <span className="text-4xl font-bold text-amber-600">
               ${calculateTotal().toFixed(2)}
             </span>
@@ -194,13 +195,13 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
             onClick={handleAddToCart}
             className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white py-5 rounded-xl font-bold text-xl transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]"
           >
-            Add to Cart
+            {t('addToCart')}
           </button>
           <button
             onClick={onClose}
             className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-semibold transition"
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       </div>
