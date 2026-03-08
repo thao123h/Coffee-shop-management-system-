@@ -9,10 +9,12 @@ import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
 import Orders from './pages/Orders';
 import Products from './pages/Products';
+import ProductForm from './pages/ProductForm';
 import Categories from './pages/Categories';
 import Payments from './pages/Payments';
 import Users from './pages/Users';
 import Vouchers from './pages/Vouchers';
+import Toppings from './pages/Toppings';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -55,10 +57,13 @@ export default function App() {
               <Route path="pos" element={<POS />} />
               <Route path="orders" element={<Orders />} />
               <Route path="products" element={<Products />} />
+              <Route path="products/new" element={<ProductForm />} />
+              <Route path="products/:id/edit" element={<ProductForm />} />
               <Route path="categories" element={<Categories />} />
               <Route path="payments" element={<Payments />} />
               <Route path="users" element={<Users />} />
               <Route path="vouchers" element={<Vouchers />} />
+              <Route path="toppings" element={<Toppings />} />
             </Route>
 
             {/* Default redirect */}

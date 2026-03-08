@@ -1,53 +1,70 @@
-import React, { useState } from "react";
-import { t } from "../i18n";
-import { Package, Plus, Edit, Trash2 } from "lucide-react";
-import { Pagination } from "../components/Pagination";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Package, Plus, Edit, Trash2, Search, ToggleLeft, ToggleRight, Loader2, AlertCircle } from "lucide-react";
+
+const API_BASE = "http://localhost:8080/api/products";
+
+async function api(url, options = {}) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: token } : {}),
+    },
+    ...options,
+  });
+  return res.json();
+}
 
 export default function Products() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
-  
-  const products = [
-    {
-      id: 1,
-      name: "Espresso",
-      category: "Coffee",
-      price: 2.5,
-      stock: 100,
-      image:
-        "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=200",
-    },
-    {
-      id: 2,
-      name: "Americano",
-      category: "Coffee",
-      price: 2.95,
-      stock: 85,
-      image:
-        "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=200",
-    },
-    {
-      id: 3,
-      name: "Latte",
-      category: "Coffee",
-      price: 3.95,
-      stock: 120,
-      image: "https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=200",
-    },
-    {
-      id: 4,
-      name: "Cappuccino",
-      category: "Coffee",
-      price: 4.25,
-      stock: 95,
-      image:
-        "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=200",
-    },
-  ];
-  
-  const totalPages = Math.ceil(products.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedProducts = products.slice(startIndex, startIndex + itemsPerPage);
+  const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const json = await api(API_BASE);
+      if (json.success) setProducts(json.data);
+      else setError(json.message || "Cannot load products.");
+    } catch {
+      setError("Cannot connect to server.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadProducts(); }, [loadProducts]);
+
+  const filtered = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.categoryName || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleToggleActive = async (product) => {
+    try {
+      const json = await api(`${API_BASE}/${product.id}/toggle-active`, { method: "PATCH" });
+      if (json.success)
+        setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, isActive: !p.isActive } : p)));
+    } catch { }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const json = await api(`${API_BASE}/${id}`, { method: "DELETE" });
+      if (json.success) setProducts((prev) => prev.filter((p) => p.id !== id));
+      else alert("Delete failed: " + json.message);
+    } catch {
+      alert("Cannot connect to server.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="p-8">
@@ -56,74 +73,152 @@ export default function Products() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Package className="text-amber-600" size={32} />
-            {t('productsPageTitle')}
+            Products
           </h1>
-          <p className="text-gray-600 mt-1">{t('manageInventory')}</p>
+          <p className="text-gray-600 mt-1">Manage your coffee shop products</p>
         </div>
-        <button className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-3 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg hover:shadow-xl">
+        <button
+          onClick={() => navigate("/dashboard/products/new")}
+          className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-3 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg hover:shadow-xl"
+        >
           <Plus size={20} />
-          {t('addProduct')}
+          Add Product
         </button>
       </div>
 
+      {/* Search */}
+      <div className="relative mb-6">
+        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search by name or category..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+        />
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex justify-center items-center h-48 text-gray-500 gap-3">
+          <Loader2 className="animate-spin" size={24} />
+          Loading products...
+        </div>
+      )}
+
+      {/* Error */}
+      {error && !loading && (
+        <div className="flex items-center gap-3 text-red-600 bg-red-50 border border-red-200 p-4 rounded-xl">
+          <AlertCircle size={20} />
+          {error}
+        </div>
+      )}
+
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {paginatedProducts.map((product) => (
-          <div
-            key={product.id}
-            className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden border border-gray-200"
-          >
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="font-bold text-lg text-gray-900">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">{product.category}</p>
-                </div>
-                <span className="text-xl font-bold text-amber-600">
-                  ${product.price.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-600">
-                  {t('stock')}: {product.stock}
-                </span>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    product.stock > 50
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
+      {!loading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filtered.length === 0 ? (
+            <div className="col-span-full text-center text-gray-400 py-12">No products found.</div>
+          ) : (
+            filtered.map((product) => (
+              <div
+                key={product.id}
+                className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden border ${product.isActive ? "border-gray-200" : "border-gray-100 opacity-60"
                   }`}
-                >
-                  {product.stock > 50 ? t('inStock') : t('lowStock')}
-                </span>
+              >
+                {product.imageUrl ? (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => { e.target.style.display = "none"; }}
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-amber-50 flex items-center justify-center">
+                    <Package size={48} className="text-amber-200" />
+                  </div>
+                )}
+
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-900">{product.name}</h3>
+                      <p className="text-sm text-amber-600">{product.categoryName || "Uncategorized"}</p>
+                    </div>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${product.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                        }`}
+                    >
+                      {product.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+
+                  {product.description && (
+                    <p className="text-sm text-gray-500 mb-3 line-clamp-2">{product.description}</p>
+                  )}
+
+                  <div className="flex items-center gap-1 mb-4">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${product.hasMultipleSizes ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-500"}`}>
+                      {product.hasMultipleSizes ? "Multiple sizes" : "One size"}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {/* Edit → navigate to form page */}
+                    <button
+                      onClick={() => navigate(`/dashboard/products/${product.id}/edit`)}
+                      className="flex-1 flex items-center justify-center gap-2 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm"
+                    >
+                      <Edit size={15} /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleToggleActive(product)}
+                      className="flex items-center justify-center px-3 py-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+                      title={product.isActive ? "Deactivate" : "Activate"}
+                    >
+                      {product.isActive ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+                    </button>
+                    <button
+                      onClick={() => setDeletingId(product.id)}
+                      className="flex items-center justify-center px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button className="flex-1 flex items-center justify-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
-                  <Edit size={16} />
-                  {t('edit')}
-                </button>
-                <button className="flex-1 flex items-center justify-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors">
-                  <Trash2 size={16} />
-                  {t('delete')}
-                </button>
-              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Delete Confirm */}
+      {deletingId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={28} className="text-red-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Product?</h3>
+            <p className="text-gray-500 text-sm mb-6">This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingId(null)}
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deletingId)}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
             </div>
           </div>
-        ))}
-      </div>
-      
-      <Pagination 
-        currentPage={currentPage} 
-        totalPages={totalPages} 
-        onPageChange={setCurrentPage}
-      />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 package com.coffeeshop.management.dto.response;
 
+import com.coffeeshop.management.entity.User;
 import com.coffeeshop.management.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,4 +16,9 @@ public class UserResponse {
     private String username;
     private String fullName;
     private Role role;
+
+    public static UserResponse from(User u) {
+        return new UserResponse(u.getId(), u.getUsername(), u.getFullName(), u.getRole());
+    }
 }
+
