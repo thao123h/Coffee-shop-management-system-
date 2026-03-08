@@ -29,7 +29,7 @@ export default function Products() {
     setError(null);
     try {
       const json = await api(API_BASE);
-      if (json.success) setProducts(json.data);
+      if (json.success) setProducts(json.data.content);
       else setError(json.message || "Cannot load products.");
     } catch {
       setError("Cannot connect to server.");
