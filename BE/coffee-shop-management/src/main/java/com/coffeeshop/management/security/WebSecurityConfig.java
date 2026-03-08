@@ -72,7 +72,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                         auth.requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/test/**").permitAll()
                                 .requestMatchers("/error").permitAll()
-                                .requestMatchers("/categories").hasRole("MANAGER")
+                                .requestMatchers("/categories").hasAnyAuthority("MANAGER", "STAFF")
                                 .requestMatchers("/products").hasAnyAuthority("MANAGER", "STAFF")
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
@@ -88,7 +88,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of("http://localhost:3000"));;
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

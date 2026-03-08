@@ -4,6 +4,8 @@ import ch.qos.logback.core.spi.ErrorCodes;
 import com.coffeeshop.management.dto.response.ApiResponse;
 import com.coffeeshop.management.enums.ErrorCode;
 import org.apache.coyote.BadRequestException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -59,5 +61,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error( ErrorCode.BAD_REQUEST));
+    }
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleUsernameNotFound(
+            UsernameNotFoundException ex){
+        log.warn("Username not found: {}", ex.getMessage());
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ErrorCode.BAD_REQUEST));
+
+    }
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<?>> handleBadCredeteials(
+             BadCredentialsException ex){
+        log.warn("Username not found: {}", ex.getMessage());
+        return  ResponseEntity.status(401)
+                .body(ApiResponse.error(ErrorCode.USER_NOT_FOUND));
+
     }
 }
