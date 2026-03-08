@@ -1,16 +1,16 @@
 package com.coffeeshop.management.controller;
 
+import com.coffeeshop.management.dto.request.VoucherRequest;
 import com.coffeeshop.management.dto.response.ApiResponse;
 import com.coffeeshop.management.entity.Voucher;
 import com.coffeeshop.management.enums.ErrorCode;
 import com.coffeeshop.management.service.VoucherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -21,11 +21,12 @@ public class VoucherController {
     private final VoucherService voucherService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Voucher>>> getAll(@RequestParam(required = false) Boolean activeOnly) {
-        List<Voucher> list = Boolean.TRUE.equals(activeOnly)
-                ? voucherService.findAllActive()
-                : voucherService.findAll();
-        return ResponseEntity.ok(ApiResponse.success(list));
+    public ResponseEntity<ApiResponse<Page<Voucher>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String keyword) {
+        Page<Voucher> result = voucherService.findAll(page, size, keyword);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @GetMapping("/{id}")
@@ -43,19 +44,27 @@ public class VoucherController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Voucher>> create(@Valid @RequestBody Voucher voucher) {
-        Voucher saved = voucherService.save(voucher);
+    public ResponseEntity<ApiResponse<Voucher>> create(@Valid @RequestBody VoucherRequest request) {
+        Voucher saved = voucherService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(saved));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Voucher>> update(@PathVariable Long id, @Valid @RequestBody Voucher voucher) {
+    public ResponseEntity<ApiResponse<Voucher>> update(@PathVariable Long id, @Valid @RequestBody VoucherRequest request) {
         if (!voucherService.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ErrorCode.NOT_FOUND));
         }
-        voucher.setId(id);
-        Voucher updated = voucherService.save(voucher);
+        Voucher updated = voucherService.update(id, request);
         return ResponseEntity.ok(ApiResponse.success(updated));
+    }
+
+    @PatchMapping("/{id}/toggle-active")
+    public ResponseEntity<ApiResponse<Voucher>> toggleActive(@PathVariable Long id) {
+        if (!voucherService.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ErrorCode.NOT_FOUND));
+        }
+        Voucher toggled = voucherService.toggleActive(id);
+        return ResponseEntity.ok(ApiResponse.success(toggled));
     }
 
     @DeleteMapping("/{id}")
