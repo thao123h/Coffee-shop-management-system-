@@ -10,11 +10,15 @@ import {
   ArrowDown,
 } from "lucide-react";
 
+const formatVND = (amount) => {
+  return new Intl.NumberFormat('vi-VN').format(Math.round(amount)) + ' ₫';
+};
+
 export default function Dashboard() {
   const stats = [
     {
       label: "Doanh thu",
-      value: "$12,459",
+      value: formatVND(12459),
       change: "+12.5%",
       trend: "up",
       icon: DollarSign,
@@ -167,7 +171,7 @@ export default function Dashboard() {
                   </span>
                   <div className="text-right">
                     <p className="font-bold text-gray-900">
-                      ${order.amount.toFixed(2)}
+                      {formatVND(order.amount)}
                     </p>
                     <p className="text-xs text-gray-500">{order.time}</p>
                   </div>
@@ -195,7 +199,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-gray-900">
-                    ${product.revenue.toFixed(2)}
+                    {formatVND(product.revenue)}
                   </p>
                   <p className="text-xs text-gray-500">Doanh thu</p>
                 </div>

@@ -59,9 +59,10 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
   };
 
 const handleAddToCart = () => {
+  const temperatureLabel = temperature === "hot" ? "Nóng" : "Lạnh";
   const finalNote = notes
-    ? `${temperature} - ${notes}`
-    : temperature;
+  ? `${temperatureLabel} - ${notes}`
+  : temperatureLabel;
 
   const cartItem = {
     id: `${product.id}-${Date.now()}`,
@@ -74,6 +75,7 @@ const handleAddToCart = () => {
   };
 
   onAddToCart(cartItem);
+  console.log("Added to cart:", cartItem);
   onClose();
 };
 

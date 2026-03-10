@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { t } from "../i18n";
 import { useCart } from "../lib/CartContext";
+import { DollarSign, Smartphone, QrCode } from "lucide-react";
+
+const formatVND = (amount) => {
+  return new Intl.NumberFormat('vi-VN').format(Math.round(amount)) + ' ₫';
+};
 import {
   Trash2,
   Printer,
   CreditCard,
-  DollarSign,
-  Smartphone,
   ShoppingBag,
   Plus,
   Minus,
@@ -18,21 +21,19 @@ export function CoffeeBillingPanel({ onPrint }) {
 
   const subtotal = items.reduce((sum, item) => {
     const itemPrice =
-      item.product.price +
+      item.productVariant.price +
       (item.toppings?.reduce((t, topping) => t + topping.price, 0) ?? 0);
     return sum + itemPrice * item.quantity;
   }, 0);
 
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + tax;
 
   const renderCustomizations = (item) => {
     const customizations = [];
-    if (item.temperature)
-      customizations.push(
-        `${item.temperature === "hot" ? "☕" : "🧊"} ${item.temperature}`,
-      );
-    if (item.size) customizations.push(`Size: ${item.size}`);
+    // if (item.temperature)
+    //   customizations.push(
+    //     `${item.temperature === "hot" ? "☕" : "🧊"} ${item.temperature}`,
+    //   );
+    if (item.productVariant) customizations.push(`${item.productVariant.name}`);
     if (item.toppings && item.toppings.length > 0) {
       customizations.push(
         `Toppings: ${item.toppings.map((t) => t.name).join(", ")}`,
@@ -42,10 +43,10 @@ export function CoffeeBillingPanel({ onPrint }) {
     return customizations;
   };
 
-  const paymentMethods = [
+   const paymentMethods = [
     { id: "cash", label: t('cash'), icon: DollarSign },
-    { id: "card", label: t('card'), icon: CreditCard },
-    { id: "mobile", label: t('mobile'), icon: Smartphone },
+    { id: "QR code", label: t('Qr code'), icon: QrCode },
+   
   ];
 
   return (
@@ -76,7 +77,7 @@ export function CoffeeBillingPanel({ onPrint }) {
         ) : (
           items.map((item) => {
             const itemSubtotal =
-              (item.product.price +
+              (item.productVariant.price +
                 (item.toppings?.reduce((t, topping) => t + topping.price, 0) ??
                   0)) *
               item.quantity;
@@ -91,10 +92,10 @@ export function CoffeeBillingPanel({ onPrint }) {
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-900">
-                      {item.product.name}
+                      {item.product.name} + {item.productVariant.name}
                     </h4>
                     <p className="text-xs text-gray-600">
-                      ${item.product.price.toFixed(2)}
+                     {formatVND(item.productVariant.price)}
                     </p>
                   </div>
                   <button
@@ -139,7 +140,7 @@ export function CoffeeBillingPanel({ onPrint }) {
                     </button>
                   </div>
                   <span className="text-lg font-bold text-amber-600">
-                    ${itemSubtotal.toFixed(2)}
+                    {formatVND(itemSubtotal)}
                   </span>
                 </div>
               </div>
@@ -150,21 +151,11 @@ export function CoffeeBillingPanel({ onPrint }) {
 
       {/* Totals Section - Compact */}
       <div className="bg-white border-t-2 border-gray-200 p-4">
-        <div className="space-y-2 mb-3">
-          <div className="flex justify-between text-gray-700 text-sm">
-            <span>{t('subtotal')}</span>
-            <span className="font-semibold">${subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-gray-700 text-sm">
-            <span>{t('tax')}</span>
-            <span className="font-semibold">${tax.toFixed(2)}</span>
-          </div>
-        </div>
         <div className="pt-3 border-t border-gray-300">
           <div className="flex justify-between items-center">
             <span className="text-lg font-bold text-gray-900">{t('totalAmount')}</span>
             <span className="text-2xl font-bold text-amber-600">
-              ${total.toFixed(2)}
+              {formatVND(subtotal)}
             </span>
           </div>
         </div>
@@ -206,13 +197,13 @@ export function CoffeeBillingPanel({ onPrint }) {
           <Printer size={20} strokeWidth={2.5} />
           {t('completeOrder')}
         </button>
-        {items.length > 0 && (
-          <p className="text-xs text-center text-gray-500 mt-2">
-            {paymentMethod === "cash" && t('cashPayment')}
-            {paymentMethod === "card" && t('cardPayment')}
-            {paymentMethod === "mobile" && t('mobilePayment')}
-          </p>
-        )}
+        {/* {items.length > 0 && (
+          // <p className="text-xs text-center text-gray-500 mt-2">
+          //   {paymentMethod === "cash" && t('cashPayment')}
+          //   {paymentMethod === "QR code" && t('qrPayment')}
+            
+          // </p>
+        )} */}
       </div>
     </div>
   );
