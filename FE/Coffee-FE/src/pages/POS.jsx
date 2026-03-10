@@ -147,9 +147,10 @@ import { t } from "../i18n";
         <CoffeeBillingPanel onPrint={handlePrintBill} />
 
         <CoffeeModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          onAddToCart={handleAddToCart}
+        key={selectedProduct?.id}
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={handleAddToCart}
         />
 
         <div ref={printRef} className="hidden print:block" />

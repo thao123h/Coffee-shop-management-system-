@@ -2,14 +2,33 @@ import { useEffect, useState } from "react";
 import { t } from "../i18n";
 import { getAllToppings } from "../service/ToppingService";
 import { X, Plus, Minus } from "lucide-react";
+import {  getProductVariantsByIdProduct } from "../service/ProductVariantService";
 
 export function CoffeeModal({ product, onClose, onAddToCart }) {
   const [temperature, setTemperature] = useState("hot");
-  const [size, setSize] = useState("M");
+  const [productVariant, setProductVariant] = useState(null);
   const [selectedToppings, setSelectedToppings] = useState([]);
   const [notes, setNotes] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [allToppings, setAllToppings] = useState([]);
+  const [productVariants, setProductVariants] = useState([]);
+
+
+ useEffect(() => {
+  if (product) {
+    const fetchProductVariants = async () => {
+      try {
+        const variants = await getProductVariantsByIdProduct(product.id);
+        setProductVariants(variants.data);
+      } catch (error) {
+        console.error("Error fetching product variants:", error);
+      }
+    };
+
+    fetchProductVariants();
+  }
+}, [product]);
+
   useEffect(() => {
     // Simulate an API call to fetch all toppings
     const fetchToppings = async () => {
@@ -26,7 +45,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
   if (!product) return null;
 
   const calculateTotal = () => {
-    const basePrice = product.price;
+    const basePrice = productVariant?.price || 0;
     const toppingsPrice = selectedToppings.reduce((sum, t) => sum + t.price, 0);
     return (basePrice + toppingsPrice) * quantity;
   };
@@ -39,20 +58,24 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
     );
   };
 
-  const handleAddToCart = () => {
-    const cartItem = {
-      id: `${product.id}-${Date.now()}`,
-      product,
-      quantity,
-      temperature,
-      size,
-      toppings: selectedToppings,
-      notes,
-    };
-    onAddToCart(cartItem);
-    onClose();
+const handleAddToCart = () => {
+  const finalNote = notes
+    ? `${temperature} - ${notes}`
+    : temperature;
+
+  const cartItem = {
+    id: `${product.id}-${Date.now()}`,
+    product,
+    quantity,
+    temperature,
+    productVariant,
+    toppings: selectedToppings,
+    notes: finalNote,
   };
 
+  onAddToCart(cartItem);
+  onClose();
+};
 
 
 
@@ -104,24 +127,25 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
             </div>
           </div>
 
-          {/* Size Selection */}
-          <div>
+              
+
+            <div>
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <span className="text-lg">📏</span>
-              {t('size')}
+              {t('size')}s
             </h3>
-            <div className="grid grid-cols-3 gap-3">
-              {["S", "M", "L"].map((sizeOption) => (
+            <div className="grid grid-cols-2 gap-3">
+              {productVariants.map((variant) => (
                 <button
-                  key={sizeOption}
-                  onClick={() => setSize(sizeOption)}
+                  key={variant.id}
+                  onClick={() => setProductVariant(variant)}
                   className={`py-4 rounded-xl font-bold text-xl transition-all ${
-                    size === sizeOption
+                    productVariant?.id === variant.id
                       ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg scale-105"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  {t(`size${sizeOption}`)}
+                  {t(`${variant.name}`)}
                 </button>
               ))}
             </div>
@@ -151,7 +175,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
                     {topping.name}
                   </span>
                   <span className="text-amber-600 font-bold text-lg">
-                    +${topping.price.toFixed(2)}
+                    +{topping.price.toLocaleString('vi-VN')} ₫
                   </span>
                 </button>
               ))}
@@ -167,7 +191,7 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g., Extra shot, light foam, less sugar..."
+              placeholder="thêm shot cà phê, ít bọt sữa, ít đường..."
               className="w-full p-4 border-2 border-gray-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-amber-600 focus:border-transparent transition"
               rows={3}
             />
@@ -200,22 +224,22 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gradient-to-t from-white via-white to-transparent border-t-2 border-gray-200 p-6 space-y-4">
+        <div className="sticky bottom-0 bg-gradient-to-t from-white via-white to-transparent border-t-2 border-gray-200 p-2 space-y-2 min-h-[100px]">
           <div className="flex justify-between items-center">
             <span className="text-gray-700 text-lg font-semibold">{t('total')}</span>
-            <span className="text-4xl font-bold text-amber-600">
-              ${calculateTotal().toFixed(2)}
+            <span className="text-2xl font-bold text-amber-600">
+              {Math.round(calculateTotal()).toLocaleString('vi-VN')} ₫
             </span>
           </div>
           <button
             onClick={handleAddToCart}
-            className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white py-5 rounded-xl font-bold text-xl transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]"
+            className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white py-2 rounded-xl font-bold text-xl transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]"
           >
             {t('addToCart')}
           </button>
           <button
             onClick={onClose}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-semibold transition"
+            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl font-semibold transition"
           >
             {t('cancel')}
           </button>
