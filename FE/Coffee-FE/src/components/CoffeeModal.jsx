@@ -13,13 +13,18 @@ export function CoffeeModal({ product, onClose, onAddToCart }) {
   const [allToppings, setAllToppings] = useState([]);
   const [productVariants, setProductVariants] = useState([]);
 
-
- useEffect(() => {
+useEffect(() => {
   if (product) {
     const fetchProductVariants = async () => {
       try {
         const variants = await getProductVariantsByIdProduct(product.id);
         setProductVariants(variants.data);
+
+        // set default size
+        if (variants.data.length > 0) {
+          setProductVariant(variants.data[0]);
+        }
+
       } catch (error) {
         console.error("Error fetching product variants:", error);
       }

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { t } from "../i18n";
 import { useCart } from "../lib/CartContext";
-import { DollarSign, Smartphone, QrCode } from "lucide-react";
+import { DollarSign, Smartphone, QrCode, Ticket } from "lucide-react";
+import { getVoucherByCode } from "../service/VoucherService";
 
 const formatVND = (amount) => {
   return new Intl.NumberFormat('vi-VN').format(Math.round(amount)) + ' ₫';
@@ -14,10 +15,14 @@ import {
   Plus,
   Minus,
 } from "lucide-react";
+import { sub } from "date-fns";
 
 export function CoffeeBillingPanel({ onPrint }) {
   const { items, removeItem, updateQuantity } = useCart();
   const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [voucherCode, setVoucherCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [voucherError, setVoucherError] = useState("");
 
   const subtotal = items.reduce((sum, item) => {
     const itemPrice =
@@ -25,6 +30,65 @@ export function CoffeeBillingPanel({ onPrint }) {
       (item.toppings?.reduce((t, topping) => t + topping.price, 0) ?? 0);
     return sum + itemPrice * item.quantity;
   }, 0);
+
+  const handleApplyVoucher = async () => {
+    setVoucherError("");
+    const now = new Date();
+    
+    if (!voucherCode.trim()) {
+      setVoucherError( "Vui lòng nhập mã voucher");
+      return;
+    }
+    try {
+       const res = await getVoucherByCode(voucherCode.trim());
+       if(!res?.success || !res?.data) {
+        setVoucherError("Mã voucher không hợp lệ");
+        return;
+       }
+       const voucher = res.data;
+       if(voucher.active  == 0) {
+        setVoucherError("Mã voucher không còn hiệu lực");
+        setDiscountAmount(0);
+        return;
+       }
+       if(now < new Date(voucher.startDate) || now > new Date(voucher.endDate)) {
+        setVoucherError("Mã voucher đã hết hạn hoặc chưa bắt đầu");
+        setDiscountAmount(0);
+        return;
+       }
+       if(subtotal < voucher.minOrderValue) {
+        setVoucherError("Đơn hàng phải tối thiểu " + formatVND(voucher.minOrderValue));
+        setDiscountAmount(0);
+        return;
+       }
+      if (voucher.usageLimit && voucher.usageCount >= voucher.usageLimit) {
+      setVoucherError("Voucher đã hết lượt sử dụng");
+      setDiscountAmount(0);
+      return;
+     }
+     const discountValue = voucher.discountValue > 100 ? voucher.discountValue : (subtotal * voucher.discountValue) / 100;
+     setDiscountAmount(Math.min(discountValue, subtotal));
+    }
+
+      catch (error) {
+      
+  if (error.response?.status === 404) {
+    setVoucherError("Mã voucher không tồn tại");
+  } else {
+    setVoucherError("Có lỗi xảy ra");
+  }
+
+      setDiscountAmount(0);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setVoucherCode("");
+    setDiscountAmount(0);
+    setVoucherError("");
+  };
+
+  const finalTotal = subtotal - discountAmount;
 
 
   const renderCustomizations = (item) => {
@@ -149,15 +213,71 @@ export function CoffeeBillingPanel({ onPrint }) {
         )}
       </div>
 
-      {/* Totals Section - Compact */}
+      {/* Voucher Section */}
       <div className="bg-white border-t-2 border-gray-200 p-4">
-        <div className="pt-3 border-t border-gray-300">
+        <p className="text-xs font-bold text-gray-600 mb-3 uppercase tracking-wide flex items-center gap-2">
+          <Ticket size={14} />
+          {t('voucher') || 'Voucher'}
+        </p>
+        <div className="flex gap-2 mb-3">
+          <input
+            type="text"
+            value={voucherCode}
+            onChange={(e) => {
+              setVoucherCode(e.target.value);
+              setVoucherError("");
+            }}
+            placeholder="Nhập mã voucher..."
+            disabled={discountAmount > 0}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100 disabled:text-gray-500"
+          />
+          {discountAmount > 0 ? (
+            <button
+              onClick={handleRemoveVoucher}
+              className="px-3 py-2 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200 transition text-sm"
+            >
+              {t('remove') || 'Xóa'}
+            </button>
+          ) : (
+            <button
+              onClick={handleApplyVoucher}
+              className="px-3 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition text-sm"
+            >
+              {t('apply') || 'Áp dụng'}
+            </button>
+          )}
+        </div>
+        {voucherError && (
+          <p className="text-xs text-red-600 font-semibold">{voucherError}</p>
+        )}
+        {discountAmount > 0 && (
+          <p className="text-xs text-green-600 font-semibold">
+            ✓ Voucher đã áp dụng!
+          </p>
+        )}
+      </div>
+
+      {/* Totals Section */}
+      <div className="bg-white border-t-2 border-gray-200 p-4 space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-700">{t('subtotal') || 'Tạm tính'}</span>
+          <span className="text-sm font-semibold text-gray-900">
+            {formatVND(subtotal)}
+          </span>
+        </div>
+        {discountAmount > 0 && (
           <div className="flex justify-between items-center">
-            <span className="text-lg font-bold text-gray-900">{t('totalAmount')}</span>
-            <span className="text-2xl font-bold text-amber-600">
-              {formatVND(subtotal)}
+            <span className="text-sm text-gray-700">{t('discount') || 'Giảm giá'}</span>
+            <span className="text-sm font-semibold text-red-600">
+              -{formatVND(discountAmount)}
             </span>
           </div>
+        )}
+        <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+          <span className="text-lg font-bold text-gray-900">{t('totalAmount') || 'Tổng cộng'}</span>
+          <span className="text-2xl font-bold text-amber-600">
+            {formatVND(finalTotal)}
+          </span>
         </div>
       </div>
 
@@ -197,13 +317,7 @@ export function CoffeeBillingPanel({ onPrint }) {
           <Printer size={20} strokeWidth={2.5} />
           {t('completeOrder')}
         </button>
-        {/* {items.length > 0 && (
-          // <p className="text-xs text-center text-gray-500 mt-2">
-          //   {paymentMethod === "cash" && t('cashPayment')}
-          //   {paymentMethod === "QR code" && t('qrPayment')}
-            
-          // </p>
-        )} */}
+        
       </div>
     </div>
   );

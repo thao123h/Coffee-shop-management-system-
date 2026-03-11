@@ -26,3 +26,8 @@ export const toggleVoucherActive = async (id) => {
   const res = await axiosClient.patch(`/vouchers/${id}/toggle-active`);
   return res.data;
 };
+
+export const getVoucherByCode = async (code) => {
+  const res = await axiosClient.get(`/vouchers/code/${code}`);
+  return res.data;
+}
