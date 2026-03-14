@@ -6,6 +6,7 @@ import { t } from "../i18n";
   import { Search } from "lucide-react";
   import { Pagination } from "../components/Pagination";
   import { useCart } from "../lib/CartContext";
+  import { createOrder } from "../service/OrderService";
 
   export default function POS() {
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -51,6 +52,25 @@ import { t } from "../i18n";
     const handlePrintBill = () => {
       window.print();
     };
+
+    const handleCreateOrder = ( orderRequest) => {
+      const postOrder = async () => {
+        try {         
+           const order = await createOrder(orderRequest);
+           console.log("Order created successfully:", order.data);
+           if(orderRequest.paymentMethod === "CASH"){
+            // Handle cash payment flow (e.g., show confirmation, print receipt)
+           }
+           else if(orderRequest.paymentMethod === "BANK"){
+            // Handle bank payment flow (e.g., redirect to payment gateway)
+            }
+        } catch (error) {
+          console.error("Error creating order:", error);
+        }
+      };
+      postOrder();
+    };
+   
 
     return (
       <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -144,7 +164,7 @@ import { t } from "../i18n";
         </div>
 
         {/* Right Side: Cart Panel (40%) */}
-        <CoffeeBillingPanel onPrint={handlePrintBill} />
+        <CoffeeBillingPanel onCompleteOrder={handleCreateOrder} />
 
         <CoffeeModal
         key={selectedProduct?.id}

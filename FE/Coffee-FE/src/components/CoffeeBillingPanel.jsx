@@ -17,10 +17,11 @@ import {
 } from "lucide-react";
 import { sub } from "date-fns";
 
-export function CoffeeBillingPanel({ onPrint }) {
+export function CoffeeBillingPanel({ onCompleteOrder }) {
   const { items, removeItem, updateQuantity } = useCart();
-  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [voucherCode, setVoucherCode] = useState("");
+  const [voucherId, setVoucherId] = useState(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [voucherError, setVoucherError] = useState("");
 
@@ -66,7 +67,8 @@ export function CoffeeBillingPanel({ onPrint }) {
       setDiscountAmount(0);
       return;
      }
-     const discountValue = voucher.discountValue > 100 ? voucher.discountValue : (subtotal * voucher.discountValue) / 100;
+      setVoucherId(voucher.id);
+     const discountValue =  voucher.discountValue || 0;
      setDiscountAmount(Math.min(discountValue, subtotal));
     }
 
@@ -108,10 +110,27 @@ export function CoffeeBillingPanel({ onPrint }) {
   };
 
    const paymentMethods = [
-    { id: "cash", label: t('cash'), icon: DollarSign },
-    { id: "QR code", label: t('Qr code'), icon: QrCode },
+    { id: "CASH", label: t('cash'), icon: DollarSign },
+    { id: "BANK", label: t('Qr code'), icon: QrCode },
    
   ];
+
+  const handleCompleteOrder = () => {
+    const orderRequest = {  
+      voucherId: voucherId,
+      paymentMethod: paymentMethod,
+      orderStatus: "PENDING",
+      orderItems: items.map((item) => ({
+        productVariantId: item.productVariant.id,
+        quantity: item.quantity,
+        toppings: item.toppings?.map((t) => t.id) || [],
+        note: item.notes || "",
+      })),
+    };
+    console.log("Order Request:", orderRequest);
+    onCompleteOrder(orderRequest);   
+    }
+    
 
   return (
     <div className="w-96 bg-white border-l border-gray-200 flex flex-col h-screen shadow-xl">
@@ -310,7 +329,7 @@ export function CoffeeBillingPanel({ onPrint }) {
       {/* Action Button - Compact */}
       <div className="border-t p-4 bg-white">
         <button
-          onClick={onPrint}
+          onClick={handleCompleteOrder}
           disabled={items.length === 0}
           className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:scale-100 disabled:shadow-none"
         >
