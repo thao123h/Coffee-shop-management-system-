@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ProductVariantResponse {
 
     private Long id;

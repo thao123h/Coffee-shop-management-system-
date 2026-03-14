@@ -75,6 +75,8 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                                 .requestMatchers("/categories").hasAnyAuthority("MANAGER", "STAFF")
                                 .requestMatchers("/products").hasAnyAuthority("MANAGER", "STAFF")
                                 .requestMatchers("/products/**").hasAnyAuthority("MANAGER", "STAFF")
+                                .requestMatchers("/orders").hasAnyAuthority("MANAGER", "STAFF")
+                                .requestMatchers("/orders/**").hasAnyAuthority("MANAGER", "STAFF")
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()

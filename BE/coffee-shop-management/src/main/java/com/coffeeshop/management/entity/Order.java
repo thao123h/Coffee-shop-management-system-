@@ -3,9 +3,11 @@ import com.coffeeshop.management.enums.OrderStatus;
 import com.coffeeshop.management.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -48,6 +50,8 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status;
 
-    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
 }
