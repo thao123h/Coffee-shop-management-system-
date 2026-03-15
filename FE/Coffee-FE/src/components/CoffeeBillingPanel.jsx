@@ -21,7 +21,7 @@ export function CoffeeBillingPanel({ onCompleteOrder }) {
   const { items, removeItem, updateQuantity } = useCart();
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [voucherCode, setVoucherCode] = useState("");
-  const [voucherId, setVoucherId] = useState(null);
+    const [voucherId, setVoucherId] = useState(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [voucherError, setVoucherError] = useState("");
 
@@ -110,12 +110,11 @@ export function CoffeeBillingPanel({ onCompleteOrder }) {
   };
 
    const paymentMethods = [
-    { id: "CASH", label: t('cash'), icon: DollarSign },
+       { id: "CASH", label: t('cash'), icon: DollarSign },
     { id: "BANK", label: t('Qr code'), icon: QrCode },
    
   ];
-
-  const handleCompleteOrder = () => {
+     const handleCompleteOrder = () => {
     const orderRequest = {  
       voucherId: voucherId,
       paymentMethod: paymentMethod,
