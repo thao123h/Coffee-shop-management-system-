@@ -23,6 +23,7 @@ const EMPTY_FORM = {
     imageUrl: "",
     hasMultipleSizes: false,
     isActive: true,
+    variants: [{ name: "Standard", price: "" }],
 };
 
 export default function ProductForm() {
@@ -35,6 +36,7 @@ export default function ProductForm() {
     const [saving, setSaving] = useState(false);
     const [loadingData, setLoadingData] = useState(isEdit);
     const [error, setError] = useState(null);
+    const [imageError, setImageError] = useState(false);
 
     // Load categories
     useEffect(() => {
@@ -51,13 +53,29 @@ export default function ProductForm() {
             .then((json) => {
                 if (json.success) {
                     const p = json.data;
-                    setForm({
-                        categoryId: p.categoryId || "",
-                        name: p.name || "",
-                        description: p.description || "",
-                        imageUrl: p.imageUrl || "",
-                        hasMultipleSizes: p.hasMultipleSizes || false,
-                        isActive: p.isActive ?? true,
+
+                    // Fetch variants for this product
+                    api(`${API_BASE}/product-variants?productId=${id}`).then(varJson => {
+                        console.log("Fetched variants:", varJson);
+                        let vars = [];
+                        if (varJson.success && varJson.data.length > 0) {
+                            vars = varJson.data.map(v => ({ name: v.name, price: v.price }));
+                        } else {
+                            // fallback
+                            vars = p.hasMultipleSizes
+                                ? [{ name: "M", price: "" }, { name: "L", price: "" }, { name: "XL", price: "" }]
+                                : [{ name: "Standard", price: "" }];
+                        }
+
+                        setForm({
+                            categoryId: p.categoryId || "",
+                            name: p.name || "",
+                            description: p.description || "",
+                            imageUrl: p.imageUrl || "",
+                            hasMultipleSizes: p.hasMultipleSizes || false,
+                            isActive: p.isActive ?? true,
+                            variants: vars,
+                        });
                     });
                 } else {
                     setError("Product not found.");
@@ -73,10 +91,28 @@ export default function ProductForm() {
         setError(null);
 
         try {
-            const body = { ...form, categoryId: parseInt(form.categoryId) };
+            // Clean up variants format before sending
+            const formattedVariants = form.variants
+                .filter(v => v.price !== "" && v.price !== null)
+                .map(v => ({
+                    name: v.name,
+                    price: parseFloat(v.price) || 0,
+                    isActive: true
+                }));
+
+            const body = {
+                ...form,
+                categoryId: parseInt(form.categoryId),
+                variants: formattedVariants
+            };
+
+            console.log("Submitting Product with variants:", body.variants);
+
             const json = isEdit
                 ? await api(`${API_BASE}/products/${id}`, { method: "PUT", body: JSON.stringify(body) })
                 : await api(`${API_BASE}/products`, { method: "POST", body: JSON.stringify(body) });
+
+            console.log("Product save response:", json);
 
             if (json.success) {
                 navigate("/dashboard/products");
@@ -185,43 +221,114 @@ export default function ProductForm() {
                         <input
                             type="text"
                             value={form.imageUrl}
-                            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                            onChange={(e) => {
+                                setForm({ ...form, imageUrl: e.target.value });
+                                setImageError(false);
+                            }}
                             placeholder="https://example.com/image.jpg"
                             className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
                         />
                         {form.imageUrl && (
                             <div className="mt-2">
                                 <p className="text-xs text-gray-400 mb-1">Preview:</p>
-                                <img
-                                    src={form.imageUrl}
-                                    alt="preview"
-                                    className="w-32 h-32 object-cover rounded-lg border border-gray-200"
-                                    onError={(e) => { e.target.style.display = "none"; }}
-                                />
+                                {!imageError ? (
+                                    <img
+                                        src={form.imageUrl}
+                                        alt="preview"
+                                        className="w-32 h-32 object-cover rounded-lg border border-gray-200 bg-white"
+                                        onError={() => setImageError(true)}
+                                    />
+                                ) : (
+                                    <div className="w-32 h-32 bg-red-50 text-red-500 border border-red-200 rounded-lg flex items-center justify-center text-xs text-center p-2 font-medium">
+                                        Invalid Image URL
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
 
-                    {/* Options */}
-                    <div className="flex gap-8 pt-1">
-                        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={form.hasMultipleSizes}
-                                onChange={(e) => setForm({ ...form, hasMultipleSizes: e.target.checked })}
-                                className="accent-amber-600 w-4 h-4 rounded"
-                            />
-                            Has multiple sizes
-                        </label>
-                        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={form.isActive}
-                                onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                                className="accent-amber-600 w-4 h-4 rounded"
-                            />
-                            Active (selling)
-                        </label>
+                    {/* Price / Variants */}
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <div className="flex gap-8 mb-4">
+                            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none font-medium">
+                                <input
+                                    type="checkbox"
+                                    checked={form.hasMultipleSizes}
+                                    onChange={(e) => {
+                                        const multi = e.target.checked;
+                                        setForm({
+                                            ...form,
+                                            hasMultipleSizes: multi,
+                                            variants: multi
+                                                ? [{ name: "M", price: "" }, { name: "L", price: "" }, { name: "XL", price: "" }]
+                                                : [{ name: "Standard", price: "" }]
+                                        });
+                                    }}
+                                    className="accent-amber-600 w-4 h-4 rounded"
+                                />
+                                Enable multiple sizes (M, L, XL)
+                            </label>
+                            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none font-medium">
+                                <input
+                                    type="checkbox"
+                                    checked={form.isActive}
+                                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                                    className="accent-amber-600 w-4 h-4 rounded"
+                                />
+                                Active (selling)
+                            </label>
+                        </div>
+
+                        {!form.hasMultipleSizes ? (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                    Price (VND) <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    required
+                                    min="0"
+                                    value={form.variants[0]?.price || ""}
+                                    onChange={(e) => {
+                                        const newVars = [...form.variants];
+                                        if (!newVars[0]) newVars[0] = { name: "Standard", price: "" };
+                                        newVars[0].price = e.target.value;
+                                        setForm({ ...form, variants: newVars });
+                                    }}
+                                    placeholder="e.g. 35000"
+                                    className="w-full sm:w-1/2 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                                />
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium text-gray-700">Size Prices (VND)</label>
+                                {["M", "L", "XL"].map((sizeName, idx) => {
+                                    const variant = form.variants.find(v => v.name === sizeName) || { name: sizeName, price: "" };
+                                    return (
+                                        <div key={sizeName} className="flex items-center gap-4">
+                                            <span className="w-12 font-semibold text-gray-600">Size {sizeName}</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={variant.price}
+                                                onChange={(e) => {
+                                                    const newVars = [...form.variants];
+                                                    const matchingIdx = newVars.findIndex(v => v.name === sizeName);
+                                                    if (matchingIdx >= 0) {
+                                                        newVars[matchingIdx].price = e.target.value;
+                                                    } else {
+                                                        newVars.push({ name: sizeName, price: e.target.value });
+                                                    }
+                                                    setForm({ ...form, variants: newVars });
+                                                }}
+                                                placeholder={`Price for size ${sizeName}...`}
+                                                className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
                     {/* Buttons */}

@@ -48,10 +48,14 @@ export default function Products() {
 
   const handleToggleActive = async (product) => {
     try {
-      const json = await api(`${API_BASE}/${product.id}/toggle-active`, { method: "PATCH" });
+      const json = await api(`${API_BASE}/${product.id}/toggle-active`, { method: "PUT" });
       if (json.success)
         setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, isActive: !p.isActive } : p)));
-    } catch { }
+      else alert("Toggle failed: " + json.message);
+    } catch (err) {
+      console.error("Toggle error", err);
+      alert("Failed to connect to server when toggling");
+    }
   };
 
   const handleDelete = async (id) => {

@@ -46,4 +46,9 @@ public class ProductVariantService {
     public boolean existsById(Long id) {
         return productVariantRepository.existsById(id);
     }
+
+    @Transactional
+    public void deleteByProductId(Long productId) {
+        productVariantRepository.deleteByProductId(productId);
+    }
 }
