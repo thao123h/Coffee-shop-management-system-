@@ -69,14 +69,39 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/auth/**").permitAll()
+                        auth
+                                // Public endpoints
+                                .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/test/**").permitAll()
                                 .requestMatchers("/error").permitAll()
-                                .requestMatchers("/categories").hasAnyAuthority("MANAGER", "STAFF")
-                                .requestMatchers("/products").hasAnyAuthority("MANAGER", "STAFF")
-                                .requestMatchers("/products/**").hasAnyAuthority("MANAGER", "STAFF")
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
+
+                                // ADMIN-only endpoints
+                                .requestMatchers("/admin/**").hasAuthority("ADMIN")
+
+                                // MANAGER + ADMIN: manage user accounts
+                                .requestMatchers("/users/**").hasAnyAuthority("MANAGER", "ADMIN")
+
+                                // MANAGER + ADMIN: full CRUD on business resources
+                                .requestMatchers(
+                                        "/categories/**",
+                                        "/toppings/**",
+                                        "/vouchers/**",
+                                        "/payments/**"
+                                ).hasAnyAuthority("MANAGER", "ADMIN")
+
+                                // MANAGER + ADMIN: full product CRUD; STAFF: read-only
+                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                        "/products", "/products/**"
+                                ).hasAnyAuthority("STAFF", "MANAGER", "ADMIN")
+                                .requestMatchers(
+                                        "/products/**"
+                                ).hasAnyAuthority("MANAGER", "ADMIN")
+
+                                // All authenticated users can work with orders
+                                .requestMatchers("/orders/**").hasAnyAuthority("STAFF", "MANAGER", "ADMIN")
+
                                 .anyRequest().authenticated()
                 );
 
