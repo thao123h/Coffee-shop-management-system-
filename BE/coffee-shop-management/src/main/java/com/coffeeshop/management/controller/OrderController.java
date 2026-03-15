@@ -32,6 +32,22 @@ public class OrderController {
        OrderResponse orderResponse = orderService.createOrder(orderRequest);
        return ResponseEntity.ok(ApiResponse.success(orderResponse));
     }
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<ApiResponse<OrderResponse>> completeOrder(
+            @PathVariable Long id) {
+
+        OrderResponse response = orderService.completeOrder(id);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // Cancel Order
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
+            @PathVariable Long id) {
+
+        OrderResponse response = orderService.cancelOrder(id);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
 
 }

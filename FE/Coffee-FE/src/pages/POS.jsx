@@ -6,15 +6,18 @@ import { getAllProducts } from "../service/ProductService";
 import { Search } from "lucide-react";
 import { Pagination } from "../components/Pagination";
 import { useCart } from "../lib/CartContext";
-import { createOrder } from "../service/OrderService";
+import { createOrder, completeCashPayment,cancelOrder } from "../service/OrderService";
 import { CashPaymentModal } from "../components/CashPaymentModal";
 import { QrPaymentOverlay } from "../components/QrPaymentOverlay";
 import { DollarSign, QrCode } from "lucide-react";
+
+
 
 export default function POS() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const clearCart = useCart().clearCart;
   const itemsPerPage = 8;
   const { addItem } = useCart();
 
@@ -77,12 +80,14 @@ const [qrImageUrl, setQrImageUrl] = useState("");
     };
     postOrder();
   };
-  const handleCashConfirm = async ({ orderId, cashReceived, change }) => {
+  const handleCashConfirm = async () => {
   try {
-    // await completeCashPayment(orderId, { cashReceived, change });
-    // await printBill(orderId);
+    const result = await completeCashPayment(createdOrder.id);
+    console.log("Payment completed successfully:", result.data);
+    // await printBill(createdOrder.id);
     setPaymentStep(null);
     setCreatedOrder(null);
+    clearCart();
   } catch (error) {
     console.error(error);
   }
@@ -90,7 +95,8 @@ const [qrImageUrl, setQrImageUrl] = useState("");
 
 const handleCancelPayment = async () => {
   try {
-    // await cancelOrder(createdOrder.id);
+    const result = await cancelOrder(createdOrder.id);
+    console.log("Order canceled successfully:", result.data);
     setPaymentStep(null);
     setCreatedOrder(null);
     setQrImageUrl("");

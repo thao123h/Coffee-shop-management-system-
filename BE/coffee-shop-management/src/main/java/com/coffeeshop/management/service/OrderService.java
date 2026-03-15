@@ -71,6 +71,30 @@ public class OrderService {
 
     }
 
+
+
+    public OrderResponse getOrderResponseById(Long id) {
+        Order order = orderRepository.findById(id).get();
+        OrderResponse orderResponse = orderMapper.toOrderResponse(order);
+        List<OrderItemResponse> orderItemResponses = orderItemService.getOrderItemResponseByOrderId(order.getId());
+        orderResponse.setOrderItems(orderItemResponses);
+        return orderResponse;
+    }
+
+    public OrderResponse completeOrder(Long id) {
+        Order order = orderRepository.findById(id).get();
+        order.setStatus(OrderStatus.COMPLETED);
+        Order savedOrder = orderRepository.save(order);
+        return getOrderResponseById(savedOrder.getId());
+    }
+
+    public OrderResponse cancelOrder(Long id) {
+        Order order = orderRepository.findById(id).get();
+        order.setStatus(OrderStatus.CANCELLED);
+        Order savedOrder = orderRepository.save(order);
+        return getOrderResponseById(savedOrder.getId());
+    }
+
     @Transactional
     public OrderResponse createOrder(OrderRequest orderRequest) {
         List<OrderItemResponse> orderItemResponseList = new ArrayList<>();
