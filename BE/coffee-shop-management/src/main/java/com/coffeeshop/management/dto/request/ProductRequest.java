@@ -3,6 +3,7 @@ package com.coffeeshop.management.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class ProductRequest {
@@ -21,4 +22,6 @@ public class ProductRequest {
     private Boolean hasMultipleSizes;
 
     private Boolean isActive = true;
+
+    private List<ProductVariantRequest> variants;
 }

@@ -1,13 +1,16 @@
  package com.coffeeshop.management.controller;
 
 import com.coffeeshop.management.dto.request.ProductRequest;
+import com.coffeeshop.management.dto.request.ProductVariantRequest;
 import com.coffeeshop.management.dto.response.ApiResponse;
 import com.coffeeshop.management.dto.response.ProductResponse;
 import com.coffeeshop.management.entity.Category;
 import com.coffeeshop.management.entity.Product;
+import com.coffeeshop.management.entity.ProductVariant;
 import com.coffeeshop.management.enums.ErrorCode;
 import com.coffeeshop.management.service.CategoryService;
 import com.coffeeshop.management.service.ProductService;
+import com.coffeeshop.management.service.ProductVariantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,16 +29,18 @@ import java.util.stream.Collectors;
 public class ProductController {
     private final ProductService productService;
     private final CategoryService categoryService;
+    private final ProductVariantService productVariantService;
 
     /** GET /products — Lấy tất cả sản phẩm */
     @GetMapping
-    public ResponseEntity<ApiResponse> getAllProducts(
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAllProducts(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Page<Product> products = productService.findAll( page, size, keyword);
-        return ResponseEntity.ok( ApiResponse.success(products));
+        Page<ProductResponse> responses = products.map(ProductResponse::from);
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
 
@@ -87,6 +92,21 @@ public class ProductController {
                 .build();
 
         Product saved = productService.save(product);
+
+        if (request.getVariants() != null && !request.getVariants().isEmpty()) {
+            for (ProductVariantRequest vr : request.getVariants()) {
+                String variantName = (vr.getName() == null || vr.getName().trim().isEmpty()) ? "Standard" : vr.getName();
+                ProductVariant variant = ProductVariant.builder()
+                        .product(saved)
+                        .name(variantName)
+                        .price(vr.getPrice())
+                        .skuCode(vr.getSkuCode())
+                        .isActive(vr.getIsActive() != null ? vr.getIsActive() : true)
+                        .build();
+                productVariantService.save(variant);
+            }
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(ProductResponse.from(saved)));
     }
@@ -111,13 +131,29 @@ public class ProductController {
             product.setCategory(category);
 
             Product updated = productService.save(product);
+
+            if (request.getVariants() != null) {
+                productVariantService.deleteByProductId(updated.getId());
+                for (ProductVariantRequest vr : request.getVariants()) {
+                    String variantName = (vr.getName() == null || vr.getName().trim().isEmpty()) ? "Standard" : vr.getName();
+                    ProductVariant variant = ProductVariant.builder()
+                            .product(updated)
+                            .name(variantName)
+                            .price(vr.getPrice())
+                            .skuCode(vr.getSkuCode())
+                            .isActive(vr.getIsActive() != null ? vr.getIsActive() : true)
+                            .build();
+                    productVariantService.save(variant);
+                }
+            }
+
             return ResponseEntity.ok(ApiResponse.success(ProductResponse.from(updated)));
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.<ProductResponse>error(ErrorCode.NOT_FOUND)));
     }
 
-    /** PATCH /products/{id}/toggle-active — Bật/tắt trạng thái bán */
-    @PatchMapping("/{id}/toggle-active")
+    /** PUT /products/{id}/toggle-active — Bật/tắt trạng thái bán */
+    @PutMapping("/{id}/toggle-active")
     public ResponseEntity<ApiResponse<ProductResponse>> toggleActive(@PathVariable Long id) {
         return productService.findById(id).map(product -> {
             product.setIsActive(!product.getIsActive());

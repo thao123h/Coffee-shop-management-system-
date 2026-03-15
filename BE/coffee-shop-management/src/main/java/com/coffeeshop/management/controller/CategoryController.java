@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
@@ -48,5 +49,26 @@ public class CategoryController {
         }
         categoryService.deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<Category>> update(
+            @PathVariable Long id,
+            @Valid @RequestBody Category categoryRequest) {
+        return categoryService.findById(id).map(existing -> {
+            existing.setName(categoryRequest.getName());
+            existing.setDescription(categoryRequest.getDescription());
+            if (categoryRequest.getIsActive() != null) {
+                existing.setIsActive(categoryRequest.getIsActive());
+            }
+            if (categoryRequest.getCode() != null) {
+                existing.setCode(categoryRequest.getCode());
+            }
+            if (categoryRequest.getDisplayOrder() != null) {
+                existing.setDisplayOrder(categoryRequest.getDisplayOrder());
+            }
+            Category updated = categoryService.save(existing);
+            return ResponseEntity.ok(ApiResponse.success(updated));
+        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ErrorCode.NOT_FOUND)));
     }
 }

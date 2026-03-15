@@ -15,6 +15,7 @@ import Payments from './pages/Payments';
 import Users from './pages/Users';
 import Vouchers from './pages/Vouchers';
 import Toppings from './pages/Toppings';
+import CategoryForm from './pages/CategoryForm';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -31,7 +32,7 @@ function PublicRoute({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
-    <AuthProvider>
+      <AuthProvider>
         <CartProvider>
           <Routes>
             {/* Public Routes */}
@@ -60,6 +61,8 @@ export default function App() {
               <Route path="products/new" element={<ProductForm />} />
               <Route path="products/:id/edit" element={<ProductForm />} />
               <Route path="categories" element={<Categories />} />
+              <Route path="categories/new" element={<CategoryForm />} />
+              <Route path="categories/:id/edit" element={<CategoryForm />} />
               <Route path="payments" element={<Payments />} />
               <Route path="users" element={<Users />} />
               <Route path="vouchers" element={<Vouchers />} />
@@ -70,7 +73,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/login" />} />
           </Routes>
         </CartProvider>
-   </AuthProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
