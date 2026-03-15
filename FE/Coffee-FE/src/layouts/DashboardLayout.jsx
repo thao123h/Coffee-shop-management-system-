@@ -14,7 +14,45 @@ import {
   LogOut,
   Menu,
   X,
+  Shield,
+  Activity,
+  MonitorSmartphone,
 } from "lucide-react";
+
+const ROLE_BADGE = {
+  ADMIN:   'bg-purple-500/30 text-purple-200 border border-purple-500/40',
+  MANAGER: 'bg-blue-500/30 text-blue-200 border border-blue-500/40',
+  STAFF:   'bg-green-500/30 text-green-200 border border-green-500/40',
+};
+
+// Menu items per role
+function getMenuItems(role) {
+  if (role === 'STAFF') {
+    return [
+      { path: "/dashboard/pos", icon: Coffee, label: t("pos") },
+    ];
+  }
+
+  if (role === 'ADMIN') {
+    return [
+      { path: "/dashboard/admin/users",   icon: Shield,            label: "Quản lý Users" },
+      { path: "/dashboard/admin/traffic", icon: Activity,          label: "System Traffic" },
+    ];
+  }
+
+  // MANAGER (default) — all screens
+  return [
+    { path: "/dashboard",             icon: LayoutDashboard, label: t("dashboard") },
+    { path: "/dashboard/pos",         icon: Coffee,          label: t("pos") },
+    { path: "/dashboard/orders",      icon: ShoppingBag,     label: t("orders") },
+    { path: "/dashboard/products",    icon: Package,         label: t("products") },
+    { path: "/dashboard/categories",  icon: Tag,             label: t("categories") },
+    { path: "/dashboard/toppings",    icon: MonitorSmartphone, label: t("toppings") },
+    { path: "/dashboard/payments",    icon: CreditCard,      label: t("payments") },
+    { path: "/dashboard/users",       icon: Users,           label: "Staff" },
+    { path: "/dashboard/vouchers",    icon: Ticket,          label: t("vouchers") },
+  ];
+}
 
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
@@ -22,21 +60,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const menuItems = [
-    { path: "/dashboard", icon: LayoutDashboard, label: t("dashboard") },
-    { path: "/dashboard/pos", icon: Coffee, label: t("pos") },
-    { path: "/dashboard/orders", icon: ShoppingBag, label: t("orders") },
-    { path: "/dashboard/products", icon: Package, label: t("products") },
-    { path: "/dashboard/categories", icon: Tag, label: t("categories") },
-    { path: "/dashboard/toppings", icon: Coffee, label: t("toppings") },
-    { path: "/dashboard/payments", icon: CreditCard, label: t("payments") },
-    {
-      path: "/dashboard/users",
-      icon: Users,
-      label: user?.role === "MANAGER" ? "Staff" : t("users"),
-    },
-    { path: "/dashboard/vouchers", icon: Ticket, label: t("vouchers") },
-  ];
+  const menuItems = getMenuItems(user?.role);
 
   const handleLogout = () => {
     logout();
@@ -71,7 +95,10 @@ export default function DashboardLayout() {
         <nav className="flex-1 py-4 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const isActive =
+              item.path === "/dashboard"
+                ? location.pathname === "/dashboard"
+                : location.pathname.startsWith(item.path);
 
             return (
               <Link
@@ -97,16 +124,17 @@ export default function DashboardLayout() {
           {sidebarOpen ? (
             <div className="space-y-2">
               <div className="flex items-center gap-3 px-3 py-2 bg-gray-700 rounded-lg">
-                <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center">
-                  <Users size={16} />
+                <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center text-sm font-bold">
+                  {user?.username?.[0]?.toUpperCase() ?? '?'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">
                     {user?.username}
                   </p>
-                  <p className="text-xs text-gray-400 capitalize">
+                  {/* Role badge */}
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_BADGE[user?.role] ?? 'bg-gray-600 text-gray-200'}`}>
                     {user?.role}
-                  </p>
+                  </span>
                 </div>
               </div>
               <button
