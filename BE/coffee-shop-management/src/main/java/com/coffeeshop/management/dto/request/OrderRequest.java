@@ -10,7 +10,6 @@ import java.util.List;
 
 @Data
 public class OrderRequest {
-    @NotNull
     private Long voucherId;
     @NotNull
     private PaymentMethod paymentMethod;

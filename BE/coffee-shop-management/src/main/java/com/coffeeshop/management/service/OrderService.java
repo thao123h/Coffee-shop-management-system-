@@ -85,7 +85,9 @@ public class OrderService {
                     OrderItemTopping orderItemTopping = orderItemToppingService.save(toppingId, orderItem);
                     toppingResponses.add(toppingMapper.toToppingResponse(orderItemTopping));
                 }
+                orderItemResponse.setToppings(toppingResponses);
             }
+
            orderItemResponseList.add(orderItemResponse);
         }
         orderResponse.setOrderItems(orderItemResponseList);
