@@ -3,6 +3,7 @@ import { t } from "../i18n";
 import { useCart } from "../lib/CartContext";
 import { DollarSign, Smartphone, QrCode, Ticket } from "lucide-react";
 import { getVoucherByCode } from "../service/VoucherService";
+import { useEffect } from "react";
 
 const formatVND = (amount) => {
   return new Intl.NumberFormat('vi-VN').format(Math.round(amount)) + ' ₫';
@@ -21,9 +22,17 @@ export function CoffeeBillingPanel({ onCompleteOrder }) {
   const { items, removeItem, updateQuantity } = useCart();
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [voucherCode, setVoucherCode] = useState("");
-  const [voucherId, setVoucherId] = useState(null);
+    const [voucherId, setVoucherId] = useState(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [voucherError, setVoucherError] = useState("");
+    useEffect(() => {
+    if (items.length === 0) {
+      setVoucherCode("");
+      setVoucherId(null);
+      setDiscountAmount(0);
+      setVoucherError("");
+    }
+  }, [items]);
 
   const subtotal = items.reduce((sum, item) => {
     const itemPrice =
@@ -110,12 +119,11 @@ export function CoffeeBillingPanel({ onCompleteOrder }) {
   };
 
    const paymentMethods = [
-    { id: "CASH", label: t('cash'), icon: DollarSign },
+       { id: "CASH", label: t('cash'), icon: DollarSign },
     { id: "BANK", label: t('Qr code'), icon: QrCode },
    
   ];
-
-  const handleCompleteOrder = () => {
+     const handleCompleteOrder = () => {
     const orderRequest = {  
       voucherId: voucherId,
       paymentMethod: paymentMethod,

@@ -1,25 +1,33 @@
-  import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { t } from "../i18n";
-  import { CoffeeModal } from "../components/CoffeeModal";
-  import { CoffeeBillingPanel } from "../components/CoffeeBillingPanel";
-  import { getAllProducts } from "../service/ProductService";
-  import { Search } from "lucide-react";
-  import { Pagination } from "../components/Pagination";
-  import { useCart } from "../lib/CartContext";
-  import { createOrder } from "../service/OrderService";
+import { CoffeeModal } from "../components/CoffeeModal";
+import { CoffeeBillingPanel } from "../components/CoffeeBillingPanel";
+import { getAllProducts } from "../service/ProductService";
+import { Search } from "lucide-react";
+import { Pagination } from "../components/Pagination";
+import { useCart } from "../lib/CartContext";
+import { createOrder, completeCashPayment,cancelOrder } from "../service/OrderService";
+import { CashPaymentModal } from "../components/CashPaymentModal";
+import { QrPaymentOverlay } from "../components/QrPaymentOverlay";
+import { DollarSign, QrCode } from "lucide-react";
 
-  export default function POS() {
-    const [selectedProduct, setSelectedProduct] = useState(null);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
-    const { addItem } = useCart();
 
-    const [products, setProducts] = useState([]); // This will hold the products fetched from the API
+
+export default function POS() {
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const clearCart = useCart().clearCart;
+  const itemsPerPage = 8;
+  const { addItem } = useCart();
+
+  const [products, setProducts] = useState([]); // This will hold the products fetched from the API
   const [totalElements, setTotalElements] = useState(0);
   const printRef = useRef(null);
 
-
+const [paymentStep, setPaymentStep] = useState(null);
+const [createdOrder, setCreatedOrder] = useState(null);
+const [qrImageUrl, setQrImageUrl] = useState("");
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -34,70 +42,111 @@ import { t } from "../i18n";
     fetchProducts();
   }, [currentPage, searchQuery]);
   const totalPages = Math.ceil(totalElements / itemsPerPage);
-    
-    // Reset to page 1 when search query changes
-    const handleSearchChange = (e) => {
-      setSearchQuery(e.target.value);
-      setCurrentPage(1);
-    };
 
-    const handleProductSelect = (product) => {
-      setSelectedProduct(product);
-    };
+  // Reset to page 1 when search query changes
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
 
-    const handleAddToCart = (cartItem) => {
-      addItem(cartItem);
-    };
+  const handleProductSelect = (product) => {
+    setSelectedProduct(product);
+  };
 
-    const handlePrintBill = () => {
-      window.print();
-    };
+  const handleAddToCart = (cartItem) => {
+    addItem(cartItem);
+  };
 
-    const handleCreateOrder = ( orderRequest) => {
-      const postOrder = async () => {
-        try {         
-           const order = await createOrder(orderRequest);
-           console.log("Order created successfully:", order.data);
-           if(orderRequest.paymentMethod === "CASH"){
-            // Handle cash payment flow (e.g., show confirmation, print receipt)
-           }
-           else if(orderRequest.paymentMethod === "BANK"){
-            // Handle bank payment flow (e.g., redirect to payment gateway)
-            }
-        } catch (error) {
-          console.error("Error creating order:", error);
+  const handlePrintBill = () => {
+    window.print();
+  };
+
+  const handleCreateOrder = (orderRequest) => {
+    const postOrder = async () => {
+      try {
+        const order = await createOrder(orderRequest);
+        console.log("Order created successfully:", order.data);
+        setCreatedOrder(order.data);
+        if (orderRequest.paymentMethod === "CASH") {
+          setPaymentStep("cash");
         }
-      };
-      postOrder();
+        else if (orderRequest.paymentMethod === "BANK") {
+          setPaymentStep("bank");
+          setQrImageUrl(order.data.qrImageUrl);
+        }
+      } catch (error) {
+        console.error("Error creating order:", error);
+      }
     };
-   
+    postOrder();
+  };
+  const handleCashConfirm = async () => {
+  try {
+    const result = await completeCashPayment(createdOrder.id);
+    console.log("Payment completed successfully:", result.data);
+    // await printBill(createdOrder.id);
+    setPaymentStep(null);
+    setCreatedOrder(null);
+    clearCart();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-    return (
-      <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Left Side: Search + Products (60%) */}
-        <div className="flex-1 flex flex-col">
-          {/* Compact Search Bar */}
-          <div className="bg-white shadow-md border-b border-gray-200 p-4">
-            <div className="max-w-md mx-auto relative">
-              <Search
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="text"
-                placeholder={t('searchCoffee')}
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-gray-500"
-              />
-            </div>
+const handleCancelPayment = async () => {
+  try {
+    const result = await cancelOrder(createdOrder.id);
+    console.log("Order canceled successfully:", result.data);
+    setPaymentStep(null);
+    setCreatedOrder(null);
+    setQrImageUrl("");
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const handleCheckPayment = async () => {
+  try {
+    // const res = await checkPaymentStatus(createdOrder.id);
+    // if (res.data.paid) {
+    //   await completeOrder(createdOrder.id);
+    //   await printBill(createdOrder.id);
+    // }
+    setPaymentStep(null);
+    setCreatedOrder(null);
+    setQrImageUrl("");
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
+  return (
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Left Side: Search + Products (60%) */}
+      <div className="flex-1 flex flex-col">
+        {/* Compact Search Bar */}
+        <div className="bg-white shadow-md border-b border-gray-200 p-4">
+          <div className="max-w-md mx-auto relative">
+            <Search
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder={t('searchCoffee')}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-gray-500"
+            />
           </div>
+        </div>
 
-          {/* Product Grid */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-                {products.map((product) => (
+        {/* Product Grid */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+              {products.map((product) => (
                 <button
                   key={product.id}
                   onClick={() => handleProductSelect(product)}
@@ -124,7 +173,7 @@ import { t } from "../i18n";
 
                     {/* Price Badge */}
                     <div className="flex items-center justify-between">
-                        {/* <div className="text-2xl font-bold text-amber-600">
+                      {/* <div className="text-2xl font-bold text-amber-600">
                           ₫{product.price?.toLocaleString()}
                         </div> */}
                       <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold group-hover:bg-amber-600 group-hover:text-white transition-colors">
@@ -134,46 +183,61 @@ import { t } from "../i18n";
                   </div>
                 </button>
               ))}
-              </div>
-
-              {products.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="bg-gray-200 rounded-full p-8 mb-4">
-                    <Search size={64} className="text-gray-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-700 mb-2">
-                    {t('noCoffeeFound')}
-                  </h3>
-                  <p className="text-gray-500">
-                    {t('tryDifferentKeyword')}
-                  </p>
-                </div>
-              )}
             </div>
-            
-            {products.length > 0 && (
-              <div className="px-6 py-4 border-t border-gray-200 bg-white">
-                <Pagination 
-                  currentPage={currentPage} 
-                  totalPages={totalPages} 
-                  onPageChange={setCurrentPage}
-                />
+
+            {products.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="bg-gray-200 rounded-full p-8 mb-4">
+                  <Search size={64} className="text-gray-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-700 mb-2">
+                  {t('noCoffeeFound')}
+                </h3>
+                <p className="text-gray-500">
+                  {t('tryDifferentKeyword')}
+                </p>
               </div>
             )}
           </div>
+
+          {products.length > 0 && (
+            <div className="px-6 py-4 border-t border-gray-200 bg-white">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Right Side: Cart Panel (40%) */}
-        <CoffeeBillingPanel onCompleteOrder={handleCreateOrder} />
+      {/* Right Side: Cart Panel (40%) */}
+      <CoffeeBillingPanel onCompleteOrder={handleCreateOrder} />
 
-        <CoffeeModal
+      <CoffeeModal
         key={selectedProduct?.id}
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={handleAddToCart}
-        />
+      />
 
-        <div ref={printRef} className="hidden print:block" />
-      </div>
-    );
-  }
+      <CashPaymentModal
+        open={paymentStep === "cash"}
+        totalAmount={createdOrder?.finalAmount || 0}
+        onClose={() => setPaymentStep(null)}
+        onConfirm={handleCashConfirm}
+      />
+
+      <QrPaymentOverlay
+        open={paymentStep === "bank"}
+        order={createdOrder}
+        qrImageUrl={qrImageUrl}
+        onClose={handleCancelPayment}
+        onCheckPayment={handleCheckPayment}
+      />
+
+      <div ref={printRef} className="hidden print:block" />
+    </div>
+  );
+}

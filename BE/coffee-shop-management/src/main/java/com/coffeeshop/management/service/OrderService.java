@@ -14,6 +14,9 @@ import com.coffeeshop.management.mapper.ToppingMapper;
 import com.coffeeshop.management.repository.*;
 import com.coffeeshop.management.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +72,35 @@ public class OrderService {
         Order order = buildOrder(orderRequest, staff, voucher, totalAmount, discountAmount, finalAmount);
          return  orderRepository.save(order);
 
+    }
+
+
+
+    public OrderResponse getOrderResponseById(Long id) {
+        Order order = orderRepository.findById(id).get();
+        OrderResponse orderResponse = orderMapper.toOrderResponse(order);
+        List<OrderItemResponse> orderItemResponses = orderItemService.getOrderItemResponseByOrderId(order.getId());
+        orderResponse.setOrderItems(orderItemResponses);
+        return orderResponse;
+    }
+
+    public Page<OrderResponse> getAllOrders(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orders = orderRepository.findAll(pageable);
+        return orders.map(order -> getOrderResponseById(order.getId()));
+    }
+    public OrderResponse completeOrder(Long id) {
+        Order order = orderRepository.findById(id).get();
+        order.setStatus(OrderStatus.COMPLETED);
+        Order savedOrder = orderRepository.save(order);
+        return getOrderResponseById(savedOrder.getId());
+    }
+
+    public OrderResponse cancelOrder(Long id) {
+        Order order = orderRepository.findById(id).get();
+        order.setStatus(OrderStatus.CANCELLED);
+        Order savedOrder = orderRepository.save(order);
+        return getOrderResponseById(savedOrder.getId());
     }
 
     @Transactional

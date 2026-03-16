@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +41,16 @@ public class OrderItemToppingService {
         orderItemTopping.setPrice(topping.getPrice());
         return  orderItemToppingRepository.save(orderItemTopping);
 
+    }
+
+    public List<ToppingResponse> findToppingResponseByOrderItemId(Long orderItemId) {
+        List<OrderItemTopping> orderItemToppings = orderItemToppingRepository.findByOrderItemId(orderItemId);
+        List<ToppingResponse> toppingResponses = new ArrayList<>();
+        for (OrderItemTopping orderItemTopping : orderItemToppings) {
+            ToppingResponse toppingResponse = toppingMapper.toToppingResponse(orderItemTopping);
+            toppingResponses.add(toppingResponse);
+        }
+        return toppingResponses;
     }
 
     @Transactional
