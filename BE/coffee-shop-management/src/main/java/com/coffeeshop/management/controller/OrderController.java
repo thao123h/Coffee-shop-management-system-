@@ -12,6 +12,7 @@ import com.coffeeshop.management.service.UserService;
 import com.coffeeshop.management.service.VoucherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,17 @@ import java.util.List;
 @RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderController {
+
+
     private final OrderService orderService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getAllOrders(
+            @RequestParam(defaultValue = "0") int page, @RequestParam int size
+    ) {
+        Page<OrderResponse> orderResponsePage = orderService.getAllOrders(page, size);
+        return ResponseEntity.ok(ApiResponse.success(orderResponsePage));
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponse>> createOrder(@Valid @RequestBody OrderRequest orderRequest) {

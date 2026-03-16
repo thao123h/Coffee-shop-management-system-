@@ -14,6 +14,9 @@ import com.coffeeshop.management.mapper.ToppingMapper;
 import com.coffeeshop.management.repository.*;
 import com.coffeeshop.management.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,6 +84,11 @@ public class OrderService {
         return orderResponse;
     }
 
+    public Page<OrderResponse> getAllOrders(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orders = orderRepository.findAll(pageable);
+        return orders.map(order -> getOrderResponseById(order.getId()));
+    }
     public OrderResponse completeOrder(Long id) {
         Order order = orderRepository.findById(id).get();
         order.setStatus(OrderStatus.COMPLETED);

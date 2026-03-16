@@ -14,3 +14,10 @@ export const cancelOrder = async (orderId) => {
   const response = await axiosClient.patch(`/orders/${orderId}/cancel`);
   return response.data;
 };
+
+export const getAllOrders = async ( page = 0,size = 10 ) => {
+  const response = await axiosClient.get("/orders", {
+    params: { page, size }
+  });
+  return response.data;
+}
