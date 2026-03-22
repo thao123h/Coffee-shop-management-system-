@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 public class ProductVariant {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

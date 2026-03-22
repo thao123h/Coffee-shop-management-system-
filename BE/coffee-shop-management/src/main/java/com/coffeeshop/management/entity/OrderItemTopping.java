@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 public class OrderItemTopping {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
