@@ -41,7 +41,10 @@ export default function ProductForm() {
     // Load categories
     useEffect(() => {
         api(`${API_BASE}/categories`).then((json) => {
-            if (json.success) setCategories(json.data);
+            if (json.success) {
+                // Backend trả về Page object, cần lấy field content
+                setCategories(json.data.content || json.data || []);
+            }
         });
     }, []);
 
