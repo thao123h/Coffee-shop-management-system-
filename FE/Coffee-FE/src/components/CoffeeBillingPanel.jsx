@@ -56,7 +56,7 @@ export function CoffeeBillingPanel({ onCompleteOrder }) {
         return;
        }
        const voucher = res.data;
-       if(voucher.active  == 0) {
+       if(!voucher.isActive) {
         setVoucherError("Mã voucher không còn hiệu lực");
         setDiscountAmount(0);
         return;

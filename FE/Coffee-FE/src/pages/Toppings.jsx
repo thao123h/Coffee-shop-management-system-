@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-    Coffee, Plus, Edit, Trash2, Search,
-    ToggleLeft, ToggleRight, Loader2, AlertCircle
-} from "lucide-react";
+import { Coffee, Plus, Edit, Search, ToggleLeft, ToggleRight, Loader2, AlertCircle } from "lucide-react";
+import { Pagination } from "../components/Pagination";
+import { toast } from "sonner";
 
 const API_BASE = "http://localhost:8080/api/toppings";
 
@@ -19,12 +17,11 @@ async function api(url, options = {}) {
     return res.json();
 }
 
-// ─── Inline Form Modal (nhỏ gọn dùng trong trang) ─────────────────────────────
 function ToppingModal({ topping, onClose, onSaved }) {
-    const isEdit = Boolean(topping);
+    const isEdit = !!topping;
     const [form, setForm] = useState({
         name: topping?.name || "",
-        price: topping?.price ?? "",
+        price: topping?.price || "",
         isActive: topping?.isActive ?? true,
     });
     const [saving, setSaving] = useState(false);
@@ -39,83 +36,55 @@ function ToppingModal({ topping, onClose, onSaved }) {
             const json = isEdit
                 ? await api(`${API_BASE}/${topping.id}`, { method: "PUT", body: JSON.stringify(body) })
                 : await api(API_BASE, { method: "POST", body: JSON.stringify(body) });
+
             if (json.success) {
-                onSaved(json.data);
+                onSaved();
                 onClose();
-            } else {
-                setError(json.message || "An error occurred.");
-            }
+                toast.success(`Topping đã được ${isEdit ? "cập nhật" : "tạo mới"} thành công`);
+            } else setError(json.message || "Đã xảy ra lỗi.");
         } catch {
-            setError("Cannot connect to server.");
+            setError("Không thể kết nối đến máy chủ.");
         } finally {
             setSaving(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-                <div className="flex items-center justify-between px-6 py-4 border-b">
-                    <h2 className="text-lg font-bold text-gray-900">
-                        {isEdit ? "Edit Topping" : "Add Topping"}
-                    </h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="px-6 py-5 border-b flex justify-between items-center bg-gray-50/50">
+                    <h2 className="text-xl font-black text-gray-900 uppercase tracking-widest">{isEdit ? "Sửa Topping" : "Thêm Topping"}</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-900 font-bold text-xl transition-colors">✕</button>
                 </div>
-
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    {error && (
-                        <div className="text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-lg text-sm">{error}</div>
-                    )}
-
-                    {/* Name */}
+                <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                    {error && <div className="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold border border-red-100 flex items-center gap-2 animate-shake"><AlertCircle size={16} /> {error}</div>}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
+                        <label className="block text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1.5 ml-1">Tên Topping</label>
                         <input
                             type="text"
                             required
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            placeholder="e.g. Trân châu đen"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="w-full border border-gray-200 rounded-2xl px-5 py-3 focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 outline-none transition-all shadow-sm font-medium"
+                            placeholder="VD: Trân châu trắng"
                         />
                     </div>
-
-                    {/* Price */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (VNĐ) <span className="text-red-500">*</span></label>
+                        <label className="block text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1.5 ml-1">Giá bán (VNĐ)</label>
                         <input
                             type="number"
                             required
-                            min="0"
-                            step="500"
                             value={form.price}
                             onChange={(e) => setForm({ ...form, price: e.target.value })}
-                            placeholder="e.g. 5000"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="w-full border border-gray-200 rounded-2xl px-5 py-3 focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 outline-none transition-all shadow-sm font-medium"
+                            placeholder="VD: 5000"
                         />
                     </div>
-
-                    {/* Active */}
-                    <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer pt-1">
-                        <input
-                            type="checkbox"
-                            checked={form.isActive}
-                            onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                            className="accent-amber-600 w-4 h-4"
-                        />
-                        Active (available in POS)
-                    </label>
-
-                    {/* Buttons */}
-                    <div className="flex gap-3 pt-2">
-                        <button type="button" onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 text-sm">
-                            Cancel
-                        </button>
-                        <button type="submit" disabled={saving}
-                            className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 text-sm flex items-center justify-center gap-2 disabled:opacity-60">
-                            {saving && <Loader2 size={14} className="animate-spin" />}
-                            {isEdit ? "Save Changes" : "Create Topping"}
+                    <div className="flex gap-4 pt-4">
+                        <button type="button" onClick={onClose} className="flex-1 py-3 text-gray-500 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all uppercase font-black text-[10px] tracking-widest active:scale-95 shadow-sm">Hủy bỏ</button>
+                        <button type="submit" disabled={saving} className="flex-1 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-2xl hover:from-amber-700 hover:to-amber-800 transition-all uppercase font-black text-[10px] tracking-widest flex justify-center items-center gap-2 shadow-lg active:scale-95 disabled:opacity-50">
+                            {saving && <Loader2 size={16} className="animate-spin" />}
+                            {isEdit ? "Cập nhật" : "Tạo mới"}
                         </button>
                     </div>
                 </form>
@@ -124,246 +93,180 @@ function ToppingModal({ topping, onClose, onSaved }) {
     );
 }
 
-// ─── Toppings Page ──────────────────────────────────────────────────────────────
 export default function Toppings() {
     const [toppings, setToppings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [search, setSearch] = useState("");
-
-    // Modal
     const [showModal, setShowModal] = useState(false);
     const [editingTopping, setEditingTopping] = useState(null);
 
-    // Delete confirm
-    const [deletingId, setDeletingId] = useState(null);
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(0);
 
     const loadToppings = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const json = await api(API_BASE);
-            if (json.success) setToppings(json.data);
-            else setError(json.message || "Cannot load toppings.");
+            const pageIndex = currentPage - 1;
+            const json = await api(`${API_BASE}?page=${pageIndex}&size=${pageSize}&keyword=${search}`);
+            if (json.success) {
+                setToppings(json.data.content || []);
+                setTotalPages(json.data.totalPages || 0);
+            } else {
+                setError(json.message || "Không thể tải danh sách topping.");
+            }
         } catch {
-            setError("Cannot connect to server.");
+            setError("Không thể kết nối đến máy chủ.");
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [currentPage, pageSize, search]);
 
     useEffect(() => { loadToppings(); }, [loadToppings]);
 
-    const filtered = toppings.filter((t) =>
-        t.name.toLowerCase().includes(search.toLowerCase())
-    );
-
-    const handleSaved = (savedTopping) => {
-        setToppings((prev) => {
-            const exists = prev.find((t) => t.id === savedTopping.id);
-            return exists
-                ? prev.map((t) => (t.id === savedTopping.id ? savedTopping : t))
-                : [...prev, savedTopping];
-        });
+    const handleSaved = () => {
+        setCurrentPage(1);
+        loadToppings();
     };
 
     const handleToggleActive = async (topping) => {
         try {
             const json = await api(`${API_BASE}/${topping.id}/toggle-active`, { method: "PATCH" });
-            if (json.success)
-                setToppings((prev) => prev.map((t) => (t.id === topping.id ? json.data : t)));
-        } catch { }
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            const json = await api(`${API_BASE}/${id}`, { method: "DELETE" });
-            if (json.success) setToppings((prev) => prev.filter((t) => t.id !== id));
-            else alert("Delete failed: " + json.message);
+            if (json.success) {
+                setToppings((prev) => 
+                    prev.map((t) => (t.id === topping.id ? json.data : t))
+                );
+                toast.success(`Topping ${topping.name} đã được ${json.data.isActive ? 'kích hoạt' : 'tạm ngưng'}`);
+            } else {
+                toast.error(json.message || "Thao tác thất bại");
+            }
         } catch {
-            alert("Cannot connect to server.");
-        } finally {
-            setDeletingId(null);
+            toast.error("Lỗi kết nối máy chủ");
         }
     };
 
-    const formatPrice = (price) =>
-        new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-
     return (
         <div className="p-8">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <Coffee className="text-amber-600" size={32} />
-                        Toppings
+                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3 font-display">
+                        <Coffee className="text-amber-600" size={32} /> Quản Lý Toppings
                     </h1>
-                    <p className="text-gray-600 mt-1">Manage add-on toppings for your drinks</p>
+                    <p className="text-gray-600 mt-1 font-medium">Danh sách các món thêm để tối ưu doanh thu</p>
                 </div>
-                <button
-                    onClick={() => { setEditingTopping(null); setShowModal(true); }}
-                    className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-3 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg hover:shadow-xl"
+                <button 
+                  onClick={() => { setEditingTopping(null); setShowModal(true); }} 
+                  className="bg-gradient-to-br from-amber-600 to-amber-800 text-white px-8 py-3.5 rounded-2xl hover:scale-105 active:scale-95 shadow-xl shadow-amber-200 transition-all font-black text-xs uppercase tracking-widest flex items-center gap-2"
                 >
-                    <Plus size={20} />
-                    Add Topping
+                    <Plus size={20} /> Thêm Topping
                 </button>
             </div>
 
-            {/* Search */}
-            <div className="relative mb-6">
-                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                    type="text"
-                    placeholder="Search topping name..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
-                />
+            {/* Filters & PageSize */}
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+                <div className="relative flex-1">
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm topping theo tên..."
+                        value={search}
+                        onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                        className="w-full pl-12 pr-4 py-3.5 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-amber-400/10 focus:border-amber-400 outline-none shadow-sm shadow-amber-50 font-medium"
+                    />
+                </div>
+                <select
+                    value={pageSize}
+                    onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                    className="border border-gray-100 rounded-2xl px-6 py-3.5 text-xs font-black uppercase tracking-widest text-amber-700 focus:outline-none focus:ring-4 focus:ring-amber-400/10 bg-white shadow-sm cursor-pointer hover:bg-amber-50/50 transition-colors"
+                >
+                    {[5, 10, 20, 50].map(s => (
+                        <option key={s} value={s}>{s} / trang</option>
+                    ))}
+                </select>
             </div>
 
-            {/* Summary bar */}
-            {!loading && !error && (
-                <div className="flex gap-4 mb-6">
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex items-center gap-3">
-                        <span className="text-2xl font-bold text-amber-600">{toppings.length}</span>
-                        <span className="text-sm text-gray-500">Total Toppings</span>
-                    </div>
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex items-center gap-3">
-                        <span className="text-2xl font-bold text-green-600">{toppings.filter((t) => t.isActive).length}</span>
-                        <span className="text-sm text-gray-500">Active</span>
-                    </div>
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex items-center gap-3">
-                        <span className="text-2xl font-bold text-gray-400">{toppings.filter((t) => !t.isActive).length}</span>
-                        <span className="text-sm text-gray-500">Inactive</span>
-                    </div>
+            {loading ? (
+                <div className="flex flex-col items-center justify-center py-24 gap-4 animate-pulse">
+                    <Loader2 className="animate-spin text-amber-600" size={56} />
+                    <p className="text-gray-400 font-black uppercase tracking-widest text-xs">Đang nạp dữ liệu...</p>
                 </div>
-            )}
-
-            {/* Loading */}
-            {loading && (
-                <div className="flex justify-center items-center h-48 text-gray-500 gap-3">
-                    <Loader2 className="animate-spin" size={24} /> Loading toppings...
+            ) : error ? (
+                <div className="bg-red-50 text-red-600 p-8 rounded-[2rem] flex items-center gap-4 border border-red-100 shadow-sm animate-in fade-in zoom-in-95 duration-300">
+                    <AlertCircle size={32} /> 
+                    <p className="font-black uppercase tracking-widest text-sm">{error}</p>
                 </div>
-            )}
-
-            {/* Error */}
-            {error && !loading && (
-                <div className="flex items-center gap-3 text-red-600 bg-red-50 border border-red-200 p-4 rounded-xl">
-                    <AlertCircle size={20} /> {error}
-                </div>
-            )}
-
-            {/* Toppings Table */}
-            {!loading && !error && (
-                <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-                    <table className="w-full text-sm">
-                        <thead className="bg-amber-50 border-b border-amber-100">
-                            <tr>
-                                <th className="text-left px-6 py-4 font-semibold text-amber-800">Topping Name</th>
-                                <th className="text-left px-6 py-4 font-semibold text-amber-800">Price</th>
-                                <th className="text-center px-6 py-4 font-semibold text-amber-800">Status</th>
-                                <th className="text-center px-6 py-4 font-semibold text-amber-800">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {filtered.length === 0 ? (
-                                <tr>
-                                    <td colSpan={4} className="text-center text-gray-400 py-12">No toppings found.</td>
-                                </tr>
-                            ) : (
-                                filtered.map((topping) => (
-                                    <tr key={topping.id} className="hover:bg-gray-50 transition-colors">
-                                        {/* Name */}
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
-                                                    <Coffee size={16} className="text-amber-600" />
-                                                </div>
-                                                <span className="font-medium text-gray-900">{topping.name}</span>
-                                            </div>
-                                        </td>
-
-                                        {/* Price */}
-                                        <td className="px-6 py-4 font-semibold text-amber-700">
-                                            {formatPrice(topping.price)}
-                                        </td>
-
-                                        {/* Status */}
-                                        <td className="px-6 py-4 text-center">
-                                            <span
-                                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${topping.isActive
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-gray-100 text-gray-500"
-                                                    }`}
-                                            >
-                                                {topping.isActive ? "● Active" : "○ Inactive"}
-                                            </span>
-                                        </td>
-
-                                        {/* Actions */}
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() => { setEditingTopping(topping); setShowModal(true); }}
-                                                    className="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium"
-                                                >
-                                                    <Edit size={13} /> Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleToggleActive(topping)}
-                                                    className="flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors text-xs font-medium"
-                                                    title={topping.isActive ? "Deactivate" : "Activate"}
-                                                >
-                                                    {topping.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
-                                                    {topping.isActive ? "Deactivate" : "Activate"}
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeletingId(topping.id)}
-                                                    className="flex items-center gap-1.5 bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium"
-                                                >
-                                                    <Trash2 size={13} /> Delete
-                                                </button>
-                                            </div>
-                                        </td>
+            ) : (
+                <>
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-50 overflow-hidden mb-8 transition-all duration-500 hover:shadow-amber-100/50">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-amber-50/50 border-b border-amber-100/50">
+                                    <tr>
+                                        <th className="text-left px-8 py-5 font-black text-amber-800 uppercase tracking-widest text-[10px]">Topping</th>
+                                        <th className="text-left px-8 py-5 font-black text-amber-800 uppercase tracking-widest text-[10px]">Đơn giá</th>
+                                        <th className="text-center px-8 py-5 font-black text-amber-800 uppercase tracking-widest text-[10px]">Trạng thái</th>
+                                        <th className="text-center px-8 py-5 font-black text-amber-800 uppercase tracking-widest text-[10px]">Hành động</th>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            {/* Create / Edit Modal */}
-            {showModal && (
-                <ToppingModal
-                    topping={editingTopping}
-                    onClose={() => { setShowModal(false); setEditingTopping(null); }}
-                    onSaved={handleSaved}
-                />
-            )}
-
-            {/* Delete Confirm */}
-            {deletingId && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center">
-                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Trash2 size={28} className="text-red-600" />
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Topping?</h3>
-                        <p className="text-gray-500 text-sm mb-6">This action cannot be undone.</p>
-                        <div className="flex gap-3">
-                            <button onClick={() => setDeletingId(null)}
-                                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50">
-                                Cancel
-                            </button>
-                            <button onClick={() => handleDelete(deletingId)}
-                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                                Delete
-                            </button>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50">
+                                    {toppings.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-8 py-16 text-center text-gray-300 font-bold italic text-base">
+                                                <Coffee size={48} className="mx-auto mb-4 opacity-10" />
+                                                Không có topping nào phù hợp.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        toppings.map((t) => (
+                                            <tr key={t.id} className={`hover:bg-amber-50/30 transition-all duration-300 group ${t.isActive ? "" : "opacity-60 bg-gray-50/50 italic scale-[0.99]"}`}>
+                                                <td className="px-8 py-5 font-black text-gray-900 group-hover:text-amber-700 transition-colors">{t.name}</td>
+                                                <td className="px-8 py-5">
+                                                    <span className="font-mono font-black text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl shadow-sm">
+                                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(t.price)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-5 text-center">
+                                                    <span className={`inline-flex items-center px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm ring-1 ring-inset ${t.isActive ? "bg-green-500 text-white ring-green-600" : "bg-gray-400 text-white ring-gray-500"}`}>
+                                                        {t.isActive ? "Sẵn sàng" : "Hết hàng"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-5">
+                                                    <div className="flex items-center justify-center gap-3">
+                                                        <button onClick={() => { setEditingTopping(t); setShowModal(true); }} className="p-2.5 text-blue-600 bg-blue-50/50 rounded-2xl hover:bg-blue-600 hover:text-white shadow-sm transition-all active:scale-90" title="Sửa thông tin"><Edit size={16} /></button>
+                                                        <button onClick={() => handleToggleActive(t)} className={`p-2.5 rounded-2xl shadow-sm transition-all active:scale-90 ${t.isActive ? "bg-amber-50/50 text-amber-600 hover:bg-amber-600 hover:text-white" : "bg-green-50/50 text-green-600 hover:bg-green-600 hover:text-white"}`} title={t.isActive ? "Tạm ngưng" : "Kích hoạt"}>
+                                                            {t.isActive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
+
+                    {totalPages > 1 && (
+                        <div className="flex justify-center mb-10">
+                            <Pagination 
+                                currentPage={currentPage} 
+                                totalPages={totalPages} 
+                                onPageChange={setCurrentPage} 
+                            />
+                        </div>
+                    )}
+                </>
+            )}
+
+            {showModal && (
+                <ToppingModal 
+                    topping={editingTopping} 
+                    onClose={() => { setShowModal(false); setEditingTopping(null); }} 
+                    onSaved={handleSaved} 
+                />
             )}
         </div>
     );

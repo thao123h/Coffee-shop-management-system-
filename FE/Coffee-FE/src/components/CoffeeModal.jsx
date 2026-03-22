@@ -17,7 +17,7 @@ useEffect(() => {
   if (product) {
     const fetchProductVariants = async () => {
       try {
-        const variants = await getProductVariantsByIdProduct(product.id);
+        const variants = await getProductVariantsByIdProduct(product.id, true);
         setProductVariants(variants.data);
 
         // set default size
@@ -38,8 +38,10 @@ useEffect(() => {
     // Simulate an API call to fetch all toppings
     const fetchToppings = async () => {
       try {
-        const toppings = await getAllToppings();
-        setAllToppings(toppings.data);
+        const toppingsRes = await getAllToppings(true);
+        // Handle both simple list and Page object
+        const toppingData = toppingsRes.data.content || toppingsRes.data || [];
+        setAllToppings(toppingData);
       } catch (error) {
         console.error("Error fetching toppings:", error);
       }
@@ -168,7 +170,7 @@ const handleAddToCart = () => {
               </span>
             </h3>
             <div className="space-y-2">
-              {allToppings.map((topping) => (
+              {allToppings?.map((topping) => (
                 <button
                   key={topping.id}
                   onClick={() => toggleTopping(topping)}

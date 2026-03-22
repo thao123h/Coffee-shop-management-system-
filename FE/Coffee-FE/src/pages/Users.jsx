@@ -1,28 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  Users,
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  Loader2,
-  AlertCircle,
-  ShieldCheck,
-  User as UserIcon,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-import { useAuth } from "../lib/authContext";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Users as UsersIcon, Plus, Edit, Search, ShieldCheck, Loader2, User as UserIcon, ToggleRight, ToggleLeft, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import { Pagination } from "../components/Pagination";
 
 const API_BASE = "http://localhost:8080/api/users";
-const ALL_ROLES = ["STAFF", "MANAGER", "ADMIN"];
-const MANAGER_ROLES = ["STAFF", "MANAGER"];
-
-const ROLE_STYLES = {
-  ADMIN: { bg: "bg-red-100", text: "text-red-700", label: "Admin" },
-  MANAGER: { bg: "bg-blue-100", text: "text-blue-700", label: "Manager" },
-  STAFF: { bg: "bg-green-100", text: "text-green-700", label: "Staff" },
-};
 
 async function api(url, options = {}) {
   const token = localStorage.getItem("token");
@@ -36,22 +17,20 @@ async function api(url, options = {}) {
   return res.json();
 }
 
-const EMPTY_FORM = { username: "", password: "", fullName: "", role: "STAFF" };
+const ROLE_STYLES = {
+  ADMIN: { bg: "bg-red-50", text: "text-red-600", label: "Quản trị viên" },
+  MANAGER: { bg: "bg-blue-50", text: "text-blue-600", label: "Quản lý" },
+  STAFF: { bg: "bg-green-50", text: "text-green-600", label: "Nhân viên" },
+};
 
-// ── Modal for Create / Edit ──────────────────────────────────────────────────
 function UserModal({ user, onClose, onSaved, allowedRoles }) {
-  const isEdit = Boolean(user);
-  const [form, setForm] = useState(
-    isEdit
-      ? {
-          username: user.username,
-          password: "",
-          fullName: user.fullName,
-          role: user.role,
-        }
-      : EMPTY_FORM,
-  );
-  const [showPwd, setShowPwd] = useState(false);
+  const isEdit = !!user;
+  const [form, setForm] = useState({
+    fullName: user?.fullName || "",
+    username: user?.username || "",
+    password: "",
+    role: user?.role || "STAFF",
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -60,146 +39,83 @@ function UserModal({ user, onClose, onSaved, allowedRoles }) {
     setSaving(true);
     setError(null);
     try {
-      const body = { ...form };
-      if (isEdit && !body.password) delete body.password; // keep existing if blank
       const json = isEdit
-        ? await api(`${API_BASE}/${user.id}`, {
-            method: "PUT",
-            body: JSON.stringify(body),
-          })
-        : await api(API_BASE, { method: "POST", body: JSON.stringify(body) });
+        ? await api(`${API_BASE}/${user.id}`, { method: "PUT", body: JSON.stringify(form) })
+        : await api(API_BASE, { method: "POST", body: JSON.stringify(form) });
+
       if (json.success) {
-        onSaved(json.data, isEdit);
+        onSaved();
         onClose();
-      } else setError(json.message || "An error occurred.");
+        toast.success(`Người dùng đã được ${isEdit ? "cập nhật" : "tạo mới"} thành công`);
+      } else setError(json.message || "Đã xảy ra lỗi.");
     } catch {
-      setError("Cannot connect to server.");
+      setError("Không thể kết nối đến máy chủ.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <UserIcon size={20} className="text-amber-600" />
-            {isEdit ? "Edit User" : "Add User"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
-          >
-            ✕
-          </button>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+          <h2 className="text-xl font-bold text-gray-900">{isEdit ? "Chỉnh sửa nhân viên" : "Thêm nhân viên mới"}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 font-bold text-xl">✕</button>
         </div>
-
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
-              <AlertCircle size={16} /> {error}
-            </div>
-          )}
-
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={form.fullName}
-              onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-              placeholder="e.g. Nguyễn Văn A"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-          </div>
-
-          {/* Username */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-              placeholder="e.g. nhanvien01"
-              maxLength={20}
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password {!isEdit && <span className="text-red-500">*</span>}
-              {isEdit && (
-                <span className="text-gray-400 text-xs ml-1">
-                  (leave blank to keep current)
-                </span>
-              )}
-            </label>
-            <div className="relative">
+          {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100">{error}</div>}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Họ và tên</label>
               <input
-                type={showPwd ? "text" : "password"}
-                value={form.password}
-                required={!isEdit}
-                minLength={isEdit ? 0 : 6}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder={
-                  isEdit ? "New password (optional)" : "Min. 6 characters"
-                }
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                type="text"
+                required
+                value={form.fullName}
+                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all shadow-sm"
+                placeholder="VD: Nguyễn Văn A"
               />
-              <button
-                type="button"
-                onClick={() => setShowPwd(!showPwd)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Tên đăng nhập</label>
+              <input
+                type="text"
+                required
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all shadow-sm"
+                placeholder="VD: nguyenvana"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                {isEdit ? "Mật khẩu mới (Để trống nếu giữ nguyên)" : "Mật khẩu"}
+              </label>
+              <input
+                type="password"
+                required={!isEdit}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all shadow-sm"
+                placeholder="••••••••"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Vai trò</label>
+              <select
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all shadow-sm bg-white"
               >
-                {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
+                {allowedRoles.map((r) => <option key={r} value={r}>{ROLE_STYLES[r]?.label || r}</option>)}
+              </select>
             </div>
           </div>
-
-          {/* Role */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role <span className="text-red-500">*</span>
-            </label>
-            <select
-              required
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
-            >
-              {allowedRoles.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 text-sm flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              {saving && <Loader2 size={14} className="animate-spin" />}
-              {isEdit ? "Save Changes" : "Create User"}
+          <div className="flex gap-3 pt-4">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors uppercase font-bold text-xs tracking-wider">Hủy</button>
+            <button type="submit" disabled={saving} className="flex-1 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all uppercase font-bold text-xs tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-60">
+              {saving && <Loader2 size={16} className="animate-spin" />}
+              {isEdit ? "Cập nhật" : "Thêm nhân viên"}
             </button>
           </div>
         </form>
@@ -208,75 +124,71 @@ function UserModal({ user, onClose, onSaved, allowedRoles }) {
   );
 }
 
-// ── Users Page ───────────────────────────────────────────────────────────────
-export default function UsersPage() {
-  const { user: currentUser } = useAuth();
-  const isManager = currentUser?.role === "MANAGER";
-  const allowedRoles = isManager ? MANAGER_ROLES : ALL_ROLES;
-
+export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
-
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const isManager = currentUser.role === "MANAGER";
+  const allowedRoles = useMemo(() => isManager ? ["MANAGER", "STAFF"] : ["ADMIN", "MANAGER", "STAFF"], [isManager]);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const json = await api(API_BASE);
-      if (json.success) setUsers(json.data);
-      else setError(json.message || "Cannot load users.");
+      const pageIndex = currentPage - 1;
+      const json = await api(`${API_BASE}?page=${pageIndex}&size=${pageSize}&keyword=${search}`);
+      if (json.success) {
+        setUsers(json.data.content || []);
+        setTotalPages(json.data.totalPages || 0);
+      } else {
+        setError(json.message || "Không thể tải danh sách người dùng.");
+      }
     } catch {
-      setError("Cannot connect to server.");
+      setError("Không thể kết nối đến máy chủ.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage, pageSize, search]);
 
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+  useEffect(() => { loadUsers(); }, [loadUsers]);
 
-  const filtered = users.filter((u) => {
-    if (isManager && u.role === "ADMIN") return false;
-    const matchSearch =
-      u.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      u.username.toLowerCase().includes(search.toLowerCase());
-    const matchRole = roleFilter === "ALL" || u.role === roleFilter;
-    return matchSearch && matchRole;
-  });
-
-  const handleSaved = (saved, isEdit) => {
-    setUsers((prev) =>
-      isEdit
-        ? prev.map((u) => (u.id === saved.id ? saved : u))
-        : [...prev, saved],
-    );
-  };
-
-  const handleDelete = async (id) => {
+  const handleToggleActive = async (user) => {
     try {
-      const json = await api(`${API_BASE}/${id}`, { method: "DELETE" });
-      if (json.success) setUsers((prev) => prev.filter((u) => u.id !== id));
-      else alert("Delete failed: " + json.message);
+      const res = await api(`${API_BASE}/${user.id}/toggle-active`, { method: "PATCH" });
+      if (res.success) {
+        setUsers((prev) => prev.map((u) => (u.id === user.id ? res.data : u)));
+        toast.success(`${user.fullName} hiện đang ${res.data.isActive ? 'Hoạt động' : 'Bị khóa'}`);
+      } else toast.error(res.message || "Thao tác thất bại");
     } catch {
-      alert("Cannot connect to server.");
-    } finally {
-      setDeletingId(null);
+      toast.error("Lỗi kết nối");
     }
   };
 
-  const getRoleStyle = (role) =>
-    ROLE_STYLES[role] || {
-      bg: "bg-gray-100",
-      text: "text-gray-600",
-      label: role,
-    };
+  const handleSaved = () => {
+    setCurrentPage(1);
+    loadUsers();
+  };
+
+  const getRoleStyle = (role) => ROLE_STYLES[role] || { bg: "bg-gray-100", text: "text-gray-600", label: role };
+
+  // Local filtering for roles since the API doesn't support role filtering yet
+  // but it does support keyword search for name/username
+  const finalUsers = users.filter(u => {
+    if (isManager && u.role === "ADMIN") return false;
+    if (roleFilter !== "ALL" && u.role !== roleFilter) return false;
+    return true;
+  });
 
   return (
     <div className="p-8">
@@ -284,238 +196,133 @@ export default function UsersPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Users className="text-amber-600" size={32} />
-            {isManager ? "Staff Management" : "Users"}
+            <UsersIcon className="text-amber-600" size={32} />
+            Quản Lý Nhân Viên
           </h1>
-          <p className="text-gray-600 mt-1">
-            {isManager
-              ? "Manage staff and manager accounts"
-              : "Manage staff accounts and roles"}
-          </p>
+          <p className="text-gray-600 mt-1">Quản lý tài khoản và quyền hạn nhân viên trong hệ thống</p>
         </div>
         <button
-          onClick={() => {
-            setEditingUser(null);
-            setShowModal(true);
-          }}
-          className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-3 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg hover:shadow-xl"
+          onClick={() => { setEditingUser(null); setShowModal(true); }}
+          className="bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-3 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg flex items-center gap-2 active:scale-95 font-bold text-sm tracking-wide"
         >
-          <Plus size={20} /> Add User
+          <Plus size={20} />
+          Thêm nhân viên
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="relative flex-1 min-w-48">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
+      {/* Filters & PageSize */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by name or username..."
+            placeholder="Tìm kiếm theo tên hoặc tên đăng nhập..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none shadow-sm shadow-amber-50"
           />
         </div>
         <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="border border-gray-200 rounded-xl px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+          value={pageSize}
+          onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+          className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white shadow-sm font-medium"
         >
-          <option value="ALL">All Roles</option>
-          {allowedRoles.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
+          {[5, 10, 20, 50].map(s => (
+            <option key={s} value={s}>{s} / trang</option>
           ))}
         </select>
       </div>
 
-      {/* Summary */}
-      {!loading && !error && (
-        <div className="flex gap-4 mb-6 flex-wrap">
-          {[
-            { label: "Total", count: filtered.length, color: "text-amber-600" },
-            ...(!isManager
-              ? [
-                  {
-                    label: "Admin",
-                    count: users.filter((u) => u.role === "ADMIN").length,
-                    color: "text-red-600",
-                  },
-                ]
-              : []),
-            {
-              label: "Manager",
-              count: users.filter((u) => u.role === "MANAGER").length,
-              color: "text-blue-600",
-            },
-            {
-              label: "Staff",
-              count: users.filter((u) => u.role === "STAFF").length,
-              color: "text-green-600",
-            },
-          ].map(({ label, count, color }) => (
-            <div
-              key={label}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex items-center gap-3"
-            >
-              <span className={`text-2xl font-bold ${color}`}>{count}</span>
-              <span className="text-sm text-gray-500">{label}</span>
-            </div>
-          ))}
+      <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-8 overflow-x-auto whitespace-nowrap">
+        {["ALL", "ADMIN", "MANAGER", "STAFF"].map((r) => (
+          <button
+            key={r}
+            onClick={() => setRoleFilter(r)}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              roleFilter === r ? "bg-white text-amber-600 shadow-md" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {r === "ALL" ? "Tất cả" : ROLE_STYLES[r]?.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <Loader2 className="animate-spin text-amber-600" size={48} />
+          <p className="text-gray-500 font-medium">Đang tải dữ liệu nhân viên...</p>
         </div>
-      )}
-
-      {/* Loading */}
-      {loading && (
-        <div className="flex justify-center items-center h-48 text-gray-500 gap-3">
-          <Loader2 className="animate-spin" size={24} /> Loading users...
+      ) : error ? (
+        <div className="p-10 text-center text-red-600 font-bold bg-red-50 rounded-2xl border border-red-100 flex items-center justify-center gap-3">
+          <AlertCircle size={24} /> {error}
         </div>
-      )}
-
-      {/* Error */}
-      {error && !loading && (
-        <div className="flex items-center gap-3 text-red-600 bg-red-50 border border-red-200 p-4 rounded-xl">
-          <AlertCircle size={20} /> {error}
-        </div>
-      )}
-
-      {/* Users Table */}
-      {!loading && !error && (
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-amber-50 border-b border-amber-100">
-              <tr>
-                <th className="text-left px-6 py-4 font-semibold text-amber-800">
-                  User
-                </th>
-                <th className="text-left px-6 py-4 font-semibold text-amber-800">
-                  Username
-                </th>
-                <th className="text-center px-6 py-4 font-semibold text-amber-800">
-                  Role
-                </th>
-                <th className="text-center px-6 py-4 font-semibold text-amber-800">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="text-center text-gray-400 py-12">
-                    No users found.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((user) => {
-                  const rs = getRoleStyle(user.role);
-                  return (
-                    <tr
-                      key={user.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      {/* User avatar + name */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                            {user.fullName?.charAt(0).toUpperCase()}
-                          </div>
-                          <span className="font-semibold text-gray-900">
-                            {user.fullName}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Username */}
-                      <td className="px-6 py-4 text-gray-500 font-mono text-xs bg-gray-50/50">
-                        @{user.username}
-                      </td>
-
-                      {/* Role badge */}
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${rs.bg} ${rs.text}`}
-                        >
-                          <ShieldCheck size={12} /> {rs.label}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingUser(user);
-                              setShowModal(true);
-                            }}
-                            className="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 text-xs font-medium"
-                          >
-                            <Edit size={13} /> Edit
-                          </button>
-                          <button
-                            onClick={() => setDeletingId(user.id)}
-                            className="flex items-center gap-1.5 bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 text-xs font-medium"
-                          >
-                            <Trash2 size={13} /> Delete
-                          </button>
-                        </div>
-                      </td>
+      ) : (
+        <>
+          <div className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden mb-6">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-amber-50 border-b border-amber-100">
+                  <tr>
+                    <th className="text-left px-6 py-4 font-bold text-amber-800 uppercase tracking-widest text-[10px]">Nhân viên</th>
+                    <th className="text-left px-6 py-4 font-bold text-amber-800 uppercase tracking-widest text-[10px]">Tên đăng nhập</th>
+                    <th className="text-center px-6 py-4 font-bold text-amber-800 uppercase tracking-widest text-[10px]">Vai trò</th>
+                    <th className="text-center px-6 py-4 font-bold text-amber-800 uppercase tracking-widest text-[10px]">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {finalUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center text-gray-400 py-12 italic">Không tìm thấy nhân viên nào.</td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Create / Edit Modal */}
-      {showModal && (
-        <UserModal
-          user={editingUser}
-          onClose={() => {
-            setShowModal(false);
-            setEditingUser(null);
-          }}
-          onSaved={handleSaved}
-          allowedRoles={allowedRoles}
-        />
-      )}
-
-      {/* Delete Confirm */}
-      {deletingId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={28} className="text-red-600" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
-              Delete User?
-            </h3>
-            <p className="text-gray-500 text-sm mb-6">
-              This action cannot be undone. The user will lose all access.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeletingId(null)}
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deletingId)}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Delete
-              </button>
+                  ) : (
+                    finalUsers.map((user) => {
+                      const rs = getRoleStyle(user.role);
+                      return (
+                        <tr key={user.id} className={`hover:bg-amber-50/20 transition-colors ${!user.isActive && 'opacity-60 bg-gray-50'}`}>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center text-amber-700 shadow-inner">
+                                <UserIcon size={20} />
+                              </div>
+                              <span className="font-bold text-gray-900">{user.fullName} {!user.isActive && <span className="text-red-500 text-[10px] ml-1 uppercase">(Đã khóa)</span>}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-gray-500 font-mono text-xs font-bold tracking-tight">@{user.username}</td>
+                          <td className="px-6 py-4 text-center">
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-inset shadow-sm ${rs.bg} ${rs.text} ${rs.text.replace('text-', 'ring-').replace('600', '200')}`}>
+                              <ShieldCheck size={12} /> {rs.label}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center gap-3">
+                              <button onClick={() => { setEditingUser(user); setShowModal(true); }} className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors shadow-sm" title="Chỉnh sửa"><Edit size={16} /></button>
+                              <button onClick={() => handleToggleActive(user)} className={`p-2 rounded-xl transition-colors shadow-sm ${user.isActive ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-green-50 text-green-600 hover:bg-green-100"}`} title={user.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}>
+                                {user.isActive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center mb-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </>
       )}
+
+      {showModal && <UserModal user={editingUser} onClose={() => { setShowModal(false); setEditingUser(null); }} onSaved={handleSaved} allowedRoles={allowedRoles} />}
     </div>
   );
 }

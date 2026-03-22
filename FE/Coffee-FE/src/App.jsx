@@ -19,6 +19,7 @@ import CategoryForm from './pages/CategoryForm';
 import AdminUsers from './pages/AdminUsers';
 import SystemTraffic from './pages/SystemTraffic';
 import Unauthorized from './pages/Unauthorized';
+import { Toaster } from './components/ui/sonner';
 
 // Protected Route - require authentication
 function ProtectedRoute({ children }) {
@@ -134,6 +135,22 @@ export default function App() {
                 }
               />
               <Route
+                path="categories/new"
+                element={
+                  <RoleRoute allowedRoles={['MANAGER']}>
+                    <CategoryForm />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="categories/:id/edit"
+                element={
+                  <RoleRoute allowedRoles={['MANAGER']}>
+                    <CategoryForm />
+                  </RoleRoute>
+                }
+              />
+              <Route
                 path="payments"
                 element={
                   <RoleRoute allowedRoles={['MANAGER']}>
@@ -202,6 +219,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
+          <Toaster position="top-center" richColors />
         </CartProvider>
    </AuthProvider>
     </BrowserRouter>

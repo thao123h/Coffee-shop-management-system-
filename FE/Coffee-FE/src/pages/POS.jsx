@@ -31,7 +31,7 @@ const [qrImageUrl, setQrImageUrl] = useState("");
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await getAllProducts(currentPage - 1, itemsPerPage, searchQuery); // Fetch products for the current page with search
+        const res = await getAllProducts(currentPage - 1, itemsPerPage, searchQuery, true); // Fetch active products only for POS
         setProducts(res.data.content); // Assuming the API response has a 'content' field with the products array
         setTotalElements(res.data.totalElements); // Assuming totalElements is in the response
       } catch (error) {

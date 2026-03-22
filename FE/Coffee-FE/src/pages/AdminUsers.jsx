@@ -38,7 +38,8 @@ export default function AdminUsers() {
     setError(null);
     try {
       const res = await axiosClient.get('/users');
-      const data = res.data?.data ?? res.data ?? [];
+      const rawData = res.data?.data ?? res.data;
+      const data = rawData?.content ?? rawData ?? [];
       setUsers(Array.isArray(data) ? data : []);
     } catch (e) {
       setError('Không thể tải danh sách người dùng.');
@@ -53,13 +54,13 @@ export default function AdminUsers() {
     const matchSearch = u.username?.toLowerCase().includes(search.toLowerCase()) ||
                         u.fullName?.toLowerCase().includes(search.toLowerCase());
     const matchRole   = filterRole === 'ALL' || u.role === filterRole;
-    return matchSearch && matchRole;
+    const isNotAdmin  = u.role !== 'ADMIN';
+    return matchSearch && matchRole && isNotAdmin;
   });
 
   // Stats
   const stats = [
-    { label: 'Tổng người dùng', value: users.length, icon: Users, color: 'from-blue-600 to-blue-400' },
-    { label: 'Admin',   value: users.filter(u => u.role === 'ADMIN').length,   icon: Shield,   color: 'from-purple-600 to-purple-400' },
+    { label: 'Tổng người dùng', value: users.filter(u => u.role !== 'ADMIN').length, icon: Users, color: 'from-blue-600 to-blue-400' },
     { label: 'Manager', value: users.filter(u => u.role === 'MANAGER').length, icon: UserCog,  color: 'from-blue-600 to-cyan-400' },
     { label: 'Staff',   value: users.filter(u => u.role === 'STAFF').length,   icon: UserCheck, color: 'from-green-600 to-emerald-400' },
   ];
@@ -121,7 +122,6 @@ export default function AdminUsers() {
             className="pl-9 pr-8 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300 appearance-none"
           >
             <option value="ALL">Tất cả Role</option>
-            <option value="ADMIN">Admin</option>
             <option value="MANAGER">Manager</option>
             <option value="STAFF">Staff</option>
           </select>

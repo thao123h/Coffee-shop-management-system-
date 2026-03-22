@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Tag, ArrowLeft, Save, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const API_BASE = "http://localhost:8080/api";
 
@@ -68,12 +69,15 @@ export default function CategoryForm() {
                 : await api(`${API_BASE}/categories`, { method: "POST", body: JSON.stringify(body) });
 
             if (json.success) {
+                toast.success(isEdit ? "Category updated!" : "Category created!");
                 navigate("/dashboard/categories");
             } else {
                 setError(json.message || "An error occurred.");
+                toast.error(json.message || "An error occurred.");
             }
         } catch {
             setError("Cannot connect to server.");
+            toast.error("Cannot connect to server.");
         } finally {
             setSaving(false);
         }
