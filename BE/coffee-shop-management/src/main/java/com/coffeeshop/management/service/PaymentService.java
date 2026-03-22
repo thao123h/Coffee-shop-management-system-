@@ -39,7 +39,6 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
 
-    private final PaymentRepository paymentRepository;
 
     public List<Payment> findAll() {
         return paymentRepository.findAll();

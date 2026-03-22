@@ -14,32 +14,54 @@ export default function Login() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!username || !password) {
-      setError(t('pleaseEnterBoth'));
-      return;
-    }
-    // diagnostic log to confirm handler is called
-    console.log("Login submit pressed", { username, password });
+  // Trim để tránh nhập toàn space
+  const trimmedUsername = username.trim();
+  const trimmedPassword = password.trim();
 
-    try {
-      const user = await loginApi(username, password);
-      console.log("loginApi response", user);
-      login(user);
-      if (user) {
-        navigate("/dashboard");
-      } else {
-        setError(t('invalidCredentials'));
-      }
-    } catch (err) {
-      console.error("Error calling loginApi", err);
-      setError(
-        err?.response?.data?.message || "Failed to call login API. Check console."
-      );
+  // Validate rỗngs
+  if (!trimmedUsername || !trimmedPassword) {
+    setError(t('pleaseEnterBoth'));
+    return;
+  }
+
+  // Validate length
+  if (trimmedUsername.length > 50) {
+    setError("Username must be less than or equal to 50 characters");
+    return;
+  }
+
+  if (trimmedPassword.length > 20) {
+    setError("Password must be less than or equal to 20 characters");
+    return;
+  }
+
+  // diagnostic log
+  console.log("Login submit pressed", {
+    username: trimmedUsername,
+    password: trimmedPassword,
+  });
+
+  try {
+    const user = await loginApi(trimmedUsername, trimmedPassword);
+    console.log("loginApi response", user);
+
+    login(user);
+
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      setError(t('invalidCredentials'));
     }
-  };
+  } catch (err) {
+    console.error("Error calling loginApi", err);
+    setError(
+      err?.response?.data?.message || "Failed to call login API. Check console."
+    );
+  }
+};
 
 
   return (
