@@ -1,5 +1,5 @@
 package com.coffeeshop.management.enums;
 
 public enum OrderStatus {
-     PENDING, COMPLETED, CANCELLED
+     PENDING, COMPLETED, CANCELLED, FAILED
 }

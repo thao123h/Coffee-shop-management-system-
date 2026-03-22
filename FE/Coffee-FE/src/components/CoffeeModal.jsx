@@ -200,6 +200,7 @@ const handleAddToCart = () => {
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              maxLength={255}
               placeholder="thêm shot cà phê, ít bọt sữa, ít đường..."
               className="w-full p-4 border-2 border-gray-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-amber-600 focus:border-transparent transition"
               rows={3}

@@ -7,6 +7,8 @@ import com.coffeeshop.management.dto.response.OrderResponse;
 import com.coffeeshop.management.entity.Order;
 import com.coffeeshop.management.enums.ErrorCode;
 import com.coffeeshop.management.enums.OrderStatus;
+import com.coffeeshop.management.enums.PaymentProvider;
+import com.coffeeshop.management.enums.PaymentStatus;
 import com.coffeeshop.management.service.OrderService;
 import com.coffeeshop.management.service.UserService;
 import com.coffeeshop.management.service.VoucherService;
@@ -44,7 +46,7 @@ public class OrderController {
        return ResponseEntity.ok(ApiResponse.success(orderResponse));
     }
     @PatchMapping("/{id}/complete")
-    public ResponseEntity<ApiResponse<OrderResponse>> completeOrder(
+    public ResponseEntity<ApiResponse<OrderResponse>> completeOrderByCash(
             @PathVariable Long id) {
 
         OrderResponse response = orderService.completeOrder(id);
@@ -58,6 +60,12 @@ public class OrderController {
 
         OrderResponse response = orderService.cancelOrder(id);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrder(@PathVariable Long id) {
+        OrderResponse orderResponse = orderService.getOrderResponseById(id);
+        return ResponseEntity.ok(ApiResponse.success(orderResponse));
     }
 
 

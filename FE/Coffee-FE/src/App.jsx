@@ -15,6 +15,9 @@ import Payments from './pages/Payments';
 import Users from './pages/Users';
 import Vouchers from './pages/Vouchers';
 import Toppings from './pages/Toppings';
+import PaymentCancel from './pages/PaymentCancel';
+import PaymentSuccess from './pages/PaymentSuccess';
+// Protected Route Component
 import CategoryForm from './pages/CategoryForm';
 import AdminUsers from './pages/AdminUsers';
 import SystemTraffic from './pages/SystemTraffic';
@@ -73,6 +76,8 @@ export default function App() {
                 </PublicRoute>
               }
             />
+              <Route path="/cancel" element={<PaymentCancel />} />
+               <Route path="/success" element={<PaymentSuccess />} />
 
             <Route path="/unauthorized" element={<Unauthorized />} />
 
@@ -85,6 +90,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
+                <Route path="cancel" element={<PaymentCancel />} />
+                <Route path="success" element={<PaymentSuccess />} />
               {/* MANAGER routes */}
               <Route
                 index

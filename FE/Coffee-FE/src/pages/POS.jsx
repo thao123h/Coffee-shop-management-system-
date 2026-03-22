@@ -10,6 +10,7 @@ import { createOrder, completeCashPayment,cancelOrder } from "../service/OrderSe
 import { CashPaymentModal } from "../components/CashPaymentModal";
 import { QrPaymentOverlay } from "../components/QrPaymentOverlay";
 import { DollarSign, QrCode } from "lucide-react";
+import { createPaymentApi } from "@/service/PaymentService";
 
 
 
@@ -20,6 +21,7 @@ export default function POS() {
   const clearCart = useCart().clearCart;
   const itemsPerPage = 8;
   const { addItem } = useCart();
+  const [loadingPayment, setLoadingPayment] = useState(false);
 
   const [products, setProducts] = useState([]); // This will hold the products fetched from the API
   const [totalElements, setTotalElements] = useState(0);
@@ -70,12 +72,21 @@ const [qrImageUrl, setQrImageUrl] = useState("");
         if (orderRequest.paymentMethod === "CASH") {
           setPaymentStep("cash");
         }
-        else if (orderRequest.paymentMethod === "BANK") {
-          setPaymentStep("bank");
-          setQrImageUrl(order.data.qrImageUrl);
-        }
+         else if (orderRequest.paymentMethod === "BANK") {
+        // 🔥 GỌI API PAYOS
+        const paymentRes = await createPaymentApi(order.data.id);
+     
+
+        // 🔥 REDIRECT LUÔN
+        window.location.href = paymentRes.checkoutUrl;
+
+        // 👉 không cần set state gì nữa
+        return;
+         }
       } catch (error) {
         console.error("Error creating order:", error);
+      } finally {
+        setLoadingPayment(false);
       }
     };
     postOrder();
@@ -236,7 +247,13 @@ const handleCheckPayment = async () => {
         onClose={handleCancelPayment}
         onCheckPayment={handleCheckPayment}
       />
-
+{loadingPayment && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="bg-white p-6 rounded-xl shadow-xl">
+      <p className="text-lg font-semibold">Đang tạo thanh toán...</p>
+    </div>
+  </div>
+)}
       <div ref={printRef} className="hidden print:block" />
     </div>
   );

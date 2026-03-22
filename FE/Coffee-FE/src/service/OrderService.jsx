@@ -21,3 +21,8 @@ export const getAllOrders = async ( page = 0,size = 10 ) => {
   });
   return response.data;
 }
+
+export const getOrderById = async (id) => {
+  const response = await axiosClient.get(`/orders/${id}`);
+  return response.data;
+}
