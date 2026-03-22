@@ -244,6 +244,24 @@ public class OrderService {
         return discountAmount;
     }
 
+    public void markAsPaid(Long orderCode) {
+        Order order = orderRepository.findById(orderCode).orElseThrow();
+        order.setStatus(OrderStatus.COMPLETED);
+        orderRepository.save(order);
+    }
+
+    public void markAsCancelled(Long orderCode) {
+        Order order = orderRepository.findById(orderCode).orElseThrow();
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+    }
+
+    public void markAsFailed(Long orderCode) {
+        Order order = orderRepository.findById(orderCode).orElseThrow();
+        order.setStatus(OrderStatus.FAILED);
+        orderRepository.save(order);
+    }
+
     @Transactional
     public void deleteById(Long id) {
         orderRepository.deleteById(id);

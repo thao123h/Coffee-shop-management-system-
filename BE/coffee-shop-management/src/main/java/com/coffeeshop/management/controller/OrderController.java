@@ -60,5 +60,11 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrder(@PathVariable Long id) {
+        OrderResponse orderResponse = orderService.getOrderResponseById(id);
+        return ResponseEntity.ok(ApiResponse.success(orderResponse));
+    }
+
 
 }

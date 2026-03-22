@@ -15,7 +15,8 @@ import Payments from './pages/Payments';
 import Users from './pages/Users';
 import Vouchers from './pages/Vouchers';
 import Toppings from './pages/Toppings';
-
+import PaymentCancel from './pages/PaymentCancel';
+import PaymentSuccess from './pages/PaymentSuccess';
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -43,6 +44,8 @@ export default function App() {
                 </PublicRoute>
               }
             />
+              <Route path="/cancel" element={<PaymentCancel />} />
+               <Route path="/success" element={<PaymentSuccess />} />
 
             {/* Protected Routes */}
             <Route
@@ -54,6 +57,8 @@ export default function App() {
               }
             >
               <Route index element={<Dashboard />} />
+              <Route path="cancel" element={<PaymentCancel />} />
+              <Route path="success" element={<PaymentSuccess />} />
               <Route path="pos" element={<POS />} />
               <Route path="orders" element={<Orders />} />
               <Route path="products" element={<Products />} />
