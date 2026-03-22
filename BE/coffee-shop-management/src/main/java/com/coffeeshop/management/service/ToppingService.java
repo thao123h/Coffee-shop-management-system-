@@ -3,6 +3,9 @@ package com.coffeeshop.management.service;
 import com.coffeeshop.management.entity.Topping;
 import com.coffeeshop.management.repository.ToppingRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +20,14 @@ public class ToppingService {
 
     public List<Topping> findAll() {
         return toppingRepository.findAll();
+    }
+
+    public Page<Topping> findAll(int page, int size, String keyword, boolean activeOnly) {
+        Pageable pageable = PageRequest.of(page, size);
+        if (activeOnly) {
+            return toppingRepository.findByNameContainingIgnoreCaseAndIsActiveTrue(keyword != null ? keyword : "", pageable);
+        }
+        return toppingRepository.findAllByNameContainingIgnoreCase(keyword, pageable);
     }
 
     public List<Topping> findAllActive() {
@@ -34,7 +45,10 @@ public class ToppingService {
 
     @Transactional
     public void deleteById(Long id) {
-        toppingRepository.deleteById(id);
+        toppingRepository.findById(id).ifPresent(t -> {
+            t.setIsActive(false);
+            toppingRepository.save(t);
+        });
     }
 
     public boolean existsById(Long id) {

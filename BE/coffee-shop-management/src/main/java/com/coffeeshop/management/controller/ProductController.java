@@ -34,11 +34,11 @@ public class ProductController {
     /** GET /products — Lấy tất cả sản phẩm */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAllProducts(
-            @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Page<Product> products = productService.findAll( page, size, keyword);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "false") boolean activeOnly) {
+        Page<Product> products = productService.findAll(page, size, keyword, activeOnly);
         Page<ProductResponse> responses = products.map(ProductResponse::from);
         return ResponseEntity.ok(ApiResponse.success(responses));
     }

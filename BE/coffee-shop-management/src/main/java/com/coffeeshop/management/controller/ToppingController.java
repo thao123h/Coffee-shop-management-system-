@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/toppings")
@@ -26,10 +28,14 @@ public class ToppingController {
 
     /** GET /toppings — Lấy tất cả topping */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ToppingResponse>>> getAllToppings() {
-        List<ToppingResponse> list = toppingService.findAll()
-                .stream().map(ToppingResponse::from).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(list));
+    public ResponseEntity<ApiResponse<Page<ToppingResponse>>> getAllToppings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "false") boolean activeOnly) {
+        Page<ToppingResponse> responses = toppingService.findAll(page, size, keyword, activeOnly)
+                .map(ToppingResponse::from);
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     /** GET /toppings/active — Chỉ topping đang bán */

@@ -9,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -17,6 +20,11 @@ public class UserService {
 
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    public Page<User> findAll(int page, int size, String keyword) {
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return userRepository.findAllByFullNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(keyword, keyword, pageable);
     }
 
     public Optional<User> findById(Long id) {
@@ -34,7 +42,10 @@ public class UserService {
 
     @Transactional
     public void deleteById(Long id) {
-        userRepository.deleteById(id);
+        userRepository.findById(id).ifPresent(u -> {
+            u.setIsActive(false);
+            userRepository.save(u);
+        });
     }
 
     public boolean existsByUsername(String username) {

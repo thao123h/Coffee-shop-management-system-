@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/users")
@@ -27,10 +29,13 @@ public class UserController {
 
     /** GET /users — Lấy tất cả nhân viên */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
-        List<UserResponse> list = userService.findAll()
-                .stream().map(UserResponse::from).collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(list));
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String keyword) {
+        Page<UserResponse> responses = userService.findAll(page, size, keyword)
+                .map(UserResponse::from);
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     /** GET /users/{id} — Chi tiết một người dùng */
@@ -86,6 +91,16 @@ public class UserController {
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
             }
+            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(userService.save(user))));
+        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.<UserResponse>error(ErrorCode.NOT_FOUND)));
+    }
+
+    /** PATCH /users/{id}/toggle-active — Bật/tắt trạng thái */
+    @PatchMapping("/{id}/toggle-active")
+    public ResponseEntity<ApiResponse<UserResponse>> toggleActive(@PathVariable Long id) {
+        return userService.findById(id).map(user -> {
+            user.setIsActive(!user.getIsActive());
             return ResponseEntity.ok(ApiResponse.success(UserResponse.from(userService.save(user))));
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.<UserResponse>error(ErrorCode.NOT_FOUND)));

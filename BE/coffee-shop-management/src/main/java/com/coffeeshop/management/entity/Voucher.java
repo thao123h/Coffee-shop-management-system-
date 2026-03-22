@@ -1,4 +1,5 @@
 package com.coffeeshop.management.entity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,6 +40,7 @@ public class Voucher {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
+    @JsonProperty("isActive")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 }

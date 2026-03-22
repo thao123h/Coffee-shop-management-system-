@@ -1,5 +1,6 @@
 package com.coffeeshop.management.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +28,7 @@ public class Category {
     @Column(name = "display_order")
     private Integer displayOrder;
 
+    @JsonProperty("isActive")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 }

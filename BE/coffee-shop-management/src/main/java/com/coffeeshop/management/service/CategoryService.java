@@ -9,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -17,6 +20,14 @@ public class CategoryService {
 
     public List<Category> findAll() {
         return categoryRepository.findAll();
+    }
+
+    public Page<Category> findAll(int page, int size, String keyword, boolean activeOnly) {
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        if (activeOnly) {
+            return categoryRepository.findByNameContainingIgnoreCaseAndIsActiveTrueOrderByDisplayOrderAsc(keyword != null ? keyword : "", pageable);
+        }
+        return categoryRepository.findAllByNameContainingIgnoreCase(keyword, pageable);
     }
 
     public List<Category> findAllActive() {
@@ -34,7 +45,10 @@ public class CategoryService {
 
     @Transactional
     public void deleteById(Long id) {
-        categoryRepository.deleteById(id);
+        categoryRepository.findById(id).ifPresent(c -> {
+            c.setIsActive(false);
+            categoryRepository.save(c);
+        });
     }
 
     public boolean existsById(Long id) {

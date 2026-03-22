@@ -2,6 +2,8 @@ package com.coffeeshop.management.controller;
 
 import com.coffeeshop.management.dto.response.ApiResponse;
 import com.coffeeshop.management.dto.response.UserResponse;
+import com.coffeeshop.management.dto.response.DashboardResponse;
+import com.coffeeshop.management.service.DashboardService;
 import com.coffeeshop.management.service.TrafficService;
 import com.coffeeshop.management.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class AdminController {
 
     private final UserService userService;
     private final TrafficService trafficService;
+    private final DashboardService dashboardService;
 
     /**
      * GET /admin/stats — Returns user statistics grouped by role.
@@ -34,11 +37,14 @@ public class AdminController {
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getUserStats() {
         List<UserResponse> allUsers = userService.findAll()
-                .stream().map(UserResponse::from).collect(Collectors.toList());
+                .stream()
+                .map(UserResponse::from)
+                .filter(u -> u.getRole() != null) // Filter out users without roles
+                .collect(Collectors.toList());
 
         Map<String, Long> countByRole = allUsers.stream()
                 .collect(Collectors.groupingBy(
-                        u -> u.getRole() != null ? u.getRole().name() : "UNKNOWN",
+                        u -> u.getRole().name(),
                         Collectors.counting()
                 ));
 
@@ -66,5 +72,13 @@ public class AdminController {
         result.put("endpointStats",       trafficService.getEndpointStats());
 
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    /**
+     * GET /admin/dashboard — Returns comprehensive dashboard statistics.
+     */
+    @GetMapping("/dashboard")
+    public ResponseEntity<ApiResponse<DashboardResponse>> getDashboardStats() {
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getDashboardStats()));
     }
 }

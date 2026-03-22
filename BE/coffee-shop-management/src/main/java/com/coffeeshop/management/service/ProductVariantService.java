@@ -24,8 +24,13 @@ public class ProductVariantService {
     }
 
 
-    public List<ProductVariantResponse> findProductVariantsByProductId(Long productId) {
-        List<ProductVariant>  list = productVariantRepository.findByProductId(productId);
+    public List<ProductVariantResponse> findProductVariantsByProductId(Long productId, boolean activeOnly) {
+        List<ProductVariant> list;
+        if (activeOnly) {
+            list = productVariantRepository.findByProductIdAndIsActiveTrue(productId);
+        } else {
+            list = productVariantRepository.findByProductId(productId);
+        }
         return productVariantMapper.toResponseList(list);
     }
 

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
+import org.springframework.data.domain.Page;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/categories")
@@ -22,11 +24,13 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Category>>> getAll(@RequestParam(required = false) Boolean activeOnly) {
-        List<Category> list = Boolean.TRUE.equals(activeOnly)
-                ? categoryService.findAllActive()
-                : categoryService.findAll();
-        return ResponseEntity.ok(ApiResponse.success(list));
+    public ResponseEntity<ApiResponse<Page<Category>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "false") boolean activeOnly) {
+
+        return ResponseEntity.ok(ApiResponse.success(categoryService.findAll(page, size, keyword, activeOnly)));
     }
 
     @GetMapping("/{id}")
@@ -69,6 +73,14 @@ public class CategoryController {
             }
             Category updated = categoryService.save(existing);
             return ResponseEntity.ok(ApiResponse.success(updated));
+        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ErrorCode.NOT_FOUND)));
+    }
+
+    @PatchMapping("/{id}/toggle-active")
+    public ResponseEntity<ApiResponse<Category>> toggleActive(@PathVariable Long id) {
+        return categoryService.findById(id).map(category -> {
+            category.setIsActive(!category.getIsActive());
+            return ResponseEntity.ok(ApiResponse.success(categoryService.save(category)));
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ErrorCode.NOT_FOUND)));
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +35,10 @@ public class VoucherService {
 
     public List<Voucher> findAllActive() {
         return voucherRepository.findByIsActiveTrue();
+    }
+
+    public List<Voucher> findAllActiveAndNotExpired() {
+        return voucherRepository.findByIsActiveTrueAndEndDateAfter(LocalDateTime.now());
     }
 
     public Optional<Voucher> findById(Long id) {
@@ -83,7 +88,10 @@ public class VoucherService {
 
     @Transactional
     public void deleteById(Long id) {
-        voucherRepository.deleteById(id);
+        voucherRepository.findById(id).ifPresent(v -> {
+            v.setIsActive(false);
+            voucherRepository.save(v);
+        });
     }
 
     public boolean existsById(Long id) {

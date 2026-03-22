@@ -24,9 +24,10 @@ public class ProductVariantController {
     private final ProductVariantService productVariantService;
     @GetMapping
     public ResponseEntity<ApiResponse<List<ProductVariantResponse>>> getAllProductVariantsByProductID(
-            @RequestParam String productId
+            @RequestParam String productId,
+            @RequestParam(defaultValue = "false") boolean activeOnly
     ) {
-        List<ProductVariantResponse> list = productVariantService.findProductVariantsByProductId(Long.parseLong(productId));
+        List<ProductVariantResponse> list = productVariantService.findProductVariantsByProductId(Long.parseLong(productId), activeOnly);
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 

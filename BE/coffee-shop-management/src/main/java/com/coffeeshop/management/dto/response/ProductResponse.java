@@ -1,6 +1,7 @@
 package com.coffeeshop.management.dto.response;
 
 import com.coffeeshop.management.entity.Product;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
@@ -12,6 +13,8 @@ public class ProductResponse {
     private String description;
     private String imageUrl;
     private Boolean hasMultipleSizes;
+    
+    @JsonProperty("isActive")
     private Boolean isActive;
 
     public static ProductResponse from(Product p) {
@@ -21,7 +24,7 @@ public class ProductResponse {
         r.description = p.getDescription();
         r.imageUrl = p.getImageUrl();
         r.hasMultipleSizes = p.getHasMultipleSizes();
-        r.isActive = p.getIsActive();
+        r.isActive = p.getIsActive() != null ? p.getIsActive() : true;
         if (p.getCategory() != null) {
             r.categoryId = p.getCategory().getId();
             r.categoryName = p.getCategory().getName();

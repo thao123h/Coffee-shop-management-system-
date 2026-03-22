@@ -1,5 +1,6 @@
 package com.coffeeshop.management.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +32,7 @@ public class Product {
     @Column(name = "has_multiple_sizes", nullable = false)
     private Boolean hasMultipleSizes;
 
+    @JsonProperty("isActive")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 }

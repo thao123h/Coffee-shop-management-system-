@@ -14,4 +14,5 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     Optional<Voucher> findByCode(String code);
     List<Voucher> findByIsActiveTrue();
     Page<Voucher> findByCodeContainingIgnoreCase(String keyword, Pageable pageable);
+    List<Voucher> findByIsActiveTrueAndEndDateAfter(java.time.LocalDateTime now);
 }

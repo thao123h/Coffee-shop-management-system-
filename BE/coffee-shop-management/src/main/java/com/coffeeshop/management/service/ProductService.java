@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,13 +18,15 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public Page<Product> findAll(int page, int size, String keyword) {
+    public Page<Product> findAll(int page, int size, String keyword, boolean activeOnly) {
         Pageable pageable = PageRequest.of(page, size);
-        if(keyword==null || keyword.equals("")){
+        if (activeOnly) {
+            return productRepository.findActiveWithCategory(keyword != null ? keyword : "", pageable);
+        }
+        if (keyword == null || keyword.equals("")) {
             return productRepository.findAll(pageable);
         }
         return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
-
     }
 
     public List<Product> findAllActive() {
@@ -47,7 +48,10 @@ public class ProductService {
 
     @Transactional
     public void deleteById(Long id) {
-        productRepository.deleteById(id);
+        productRepository.findById(id).ifPresent(p -> {
+            p.setIsActive(false);
+            productRepository.save(p);
+        });
     }
 
     public boolean existsById(Long id) {

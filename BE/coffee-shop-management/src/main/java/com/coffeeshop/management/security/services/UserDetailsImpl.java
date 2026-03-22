@@ -10,27 +10,26 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class UserDetailsImpl implements UserDetails {
   private static final long serialVersionUID = 1L;
 
   private Long id;
-
   private String username;
-
 
   @JsonIgnore
   private String password;
 
   private Collection<? extends GrantedAuthority> authorities;
+  private boolean enabled;
 
   public UserDetailsImpl(Long id, String username,  String password,
-      Collection<? extends GrantedAuthority> authorities) {
+      Collection<? extends GrantedAuthority> authorities, boolean enabled) {
     this.id = id;
     this.username = username;
     this.password = password;
     this.authorities = authorities;
+    this.enabled = enabled;
   }
 
   public static UserDetailsImpl build(User user) {
@@ -40,7 +39,8 @@ public class UserDetailsImpl implements UserDetails {
     return new UserDetailsImpl(
         user.getId(), 
         user.getUsername(),
-        user.getPassword(), List.of(authority));
+        user.getPassword(), List.of(authority),
+        user.getIsActive() != null ? user.getIsActive() : true);
   }
 
   @Override
@@ -80,7 +80,7 @@ public class UserDetailsImpl implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return true;
+    return enabled;
   }
 
   @Override

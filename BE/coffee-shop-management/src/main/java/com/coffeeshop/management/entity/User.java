@@ -1,14 +1,11 @@
 package com.coffeeshop.management.entity;
 
 import com.coffeeshop.management.enums.Role;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -28,12 +25,17 @@ public class User {
     @Size(max = 120)
     @Column(nullable = false, unique = true)
     private String password;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private Role role;
+
     @Column(name = "full_name")
     private String fullName;
 
+    @JsonProperty("isActive")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
 
     public User(String username, String password, String fullName,  Role role) {
         this.username = username;
@@ -82,5 +84,11 @@ public class User {
         this.password = password;
     }
 
+    public Boolean getIsActive() {
+        return isActive;
+    }
 
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 }
