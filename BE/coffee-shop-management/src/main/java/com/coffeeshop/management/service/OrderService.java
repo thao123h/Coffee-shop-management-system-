@@ -8,6 +8,8 @@ import com.coffeeshop.management.dto.response.OrderResponse;
 import com.coffeeshop.management.dto.response.ToppingResponse;
 import com.coffeeshop.management.entity.*;
 import com.coffeeshop.management.enums.OrderStatus;
+import com.coffeeshop.management.enums.PaymentProvider;
+import com.coffeeshop.management.enums.PaymentStatus;
 import com.coffeeshop.management.mapper.OrderItemMapper;
 import com.coffeeshop.management.mapper.OrderMapper;
 import com.coffeeshop.management.mapper.ToppingMapper;
@@ -40,6 +42,7 @@ public class OrderService {
     private final OrderItemMapper orderItemMapper;
     private final ToppingMapper toppingMapper;
     private final OrderMapper orderMapper;
+    private final PaymentRepository paymentRepository;
 
     public List<Order> findAll() {
         return orderRepository.findAll();
@@ -93,6 +96,18 @@ public class OrderService {
         Order order = orderRepository.findById(id).get();
         order.setStatus(OrderStatus.COMPLETED);
         Order savedOrder = orderRepository.save(order);
+        Payment payment = Payment.builder()
+                .order(order)
+                .provider(PaymentProvider.CASH) // hoặc dựa vào order.getPaymentMethod()
+                .amount(order.getFinalAmount())
+                .currency("VND")
+                .status(PaymentStatus.SUCCESS) // tuỳ logic: success ngay khi complete
+                .txnRef("TXN" + System.currentTimeMillis()) // tạo ref tạm
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        paymentRepository.save(payment);
         return getOrderResponseById(savedOrder.getId());
     }
 

@@ -4,6 +4,7 @@ import com.coffeeshop.management.dto.response.ApiResponse;
 import com.coffeeshop.management.entity.Order;
 import com.coffeeshop.management.entity.Payment;
 import com.coffeeshop.management.enums.ErrorCode;
+import com.coffeeshop.management.enums.PaymentProvider;
 import com.coffeeshop.management.enums.PaymentStatus;
 import com.coffeeshop.management.repository.OrderRepository;
 import com.coffeeshop.management.service.OrderService;
@@ -40,7 +41,7 @@ public class PaymentController {
     public ResponseEntity<?> handleWebhook(@RequestBody Map<String, Object> payload) {
 
         try {
-            // 1. Lấy signature từ PayOS gửi về
+            // 1. Lấy signature từ PayOS
             String receivedSignature = (String) payload.get("signature");
 
             // 2. Remove signature để build lại rawData
@@ -52,16 +53,18 @@ public class PaymentController {
 
             // 4. Verify signature
             if (!generatedSignature.equals(receivedSignature)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Invalid signature");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
             }
 
             // 5. Lấy thông tin
             Long orderCode = Long.valueOf(data.get("orderCode").toString());
             String status = data.get("status").toString();
+            String txnRef = data.get("txnRef").toString();
+            int amount = Integer.parseInt(data.get("amount").toString());
 
-            // 6. Update DB
+            // 6. Nếu thanh toán thành công, tạo payment và update order
             if ("PAID".equals(status)) {
+                paymentService.createPaymentFromWebhook(orderCode, amount, txnRef, PaymentProvider.BANK_TRANSFER);
                 orderService.markAsPaid(orderCode);
             } else if ("CANCELLED".equals(status)) {
                 orderService.markAsCancelled(orderCode);
