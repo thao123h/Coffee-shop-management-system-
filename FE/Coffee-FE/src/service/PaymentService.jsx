@@ -13,6 +13,7 @@ export const getAllPayments = async (
     params: { page, size, keyword, status, provider, fromDate, toDate },
   });
   return res.data;
+};
 /**
  * Tạo link thanh toán PayOS cho đơn hàng
  * @param {number} orderId - ID đơn hàng

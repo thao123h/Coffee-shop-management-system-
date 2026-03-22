@@ -91,7 +91,7 @@ export function QrPaymentOverlay({
                   {loadingQr ? (
                     <p className="text-gray-500">Đang tạo QR...</p>
                   ) : qrImageUrl ? (
-                    <QRCode
+                    <QRCodeCanvas
                       value={qrImageUrl}
                       size={220}
                     />
