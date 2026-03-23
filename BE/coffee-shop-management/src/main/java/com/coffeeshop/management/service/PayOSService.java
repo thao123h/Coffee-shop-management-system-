@@ -12,10 +12,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import com.coffeeshop.management.config.PayOSConfig;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,17 +60,22 @@ public class PayOSService {
     public String generateSignature(Map<String, Object> data) {
         try {
             String rawData = buildRawData(data);
+            System.out.println("DATA TO SIGN: " + rawData);
 
-            SecretKeySpec secretKey = new SecretKeySpec(
-                    config.checksumKey.getBytes(),
-                    "HmacSHA256"
-            );
+            String secretKey = config.checksumKey; //
 
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(secretKey);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HmacSHA256");
+            mac.init(secretKeySpec);
 
             byte[] hash = mac.doFinal(rawData.getBytes());
-            return Hex.encodeHexString(hash);
+
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+
+            return hex.toString();
 
         } catch (Exception e) {
             throw new RuntimeException(e);

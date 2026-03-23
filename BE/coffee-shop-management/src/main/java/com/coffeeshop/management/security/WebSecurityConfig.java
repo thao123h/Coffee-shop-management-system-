@@ -82,6 +82,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                                 .requestMatchers("/orders/**").hasAnyAuthority("MANAGER", "STAFF")
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
+                                .requestMatchers("/payments/webhook").permitAll()
 
                                 // ADMIN-only endpoints
                                 .requestMatchers("/admin/**").hasAuthority("ADMIN")

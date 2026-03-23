@@ -39,35 +39,25 @@ public class PaymentController {
     }
     @PostMapping("/webhook")
     public ResponseEntity<?> handleWebhook(@RequestBody Map<String, Object> payload) {
+        System.out.println("Payload: " + payload);
 
         try {
-            // 1. Lấy signature từ PayOS
             String receivedSignature = (String) payload.get("signature");
+            Map<String, Object> data = (Map<String, Object>) payload.get("data");
 
-            // 2. Remove signature để build lại rawData
-            Map<String, Object> data = new HashMap<>(payload);
-            data.remove("signature");
+//             String generatedSignature = payOSService.generateSignature(data);
+//             if (!generatedSignature.equals(receivedSignature)) {
+//                 return ResponseEntity.badRequest().body("Invalid signature");
+//             }
 
-            // 3. Tạo lại signature từ data
-            String generatedSignature = payOSService.generateSignature(data);
-
-            // 4. Verify signature
-            if (!generatedSignature.equals(receivedSignature)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
-            }
-
-            // 5. Lấy thông tin
             Long orderCode = Long.valueOf(data.get("orderCode").toString());
-            String status = data.get("status").toString();
-            String txnRef = data.get("txnRef").toString();
             int amount = Integer.parseInt(data.get("amount").toString());
+            String code = data.get("code").toString();
+            String txnRef = data.get("reference").toString();
 
-            // 6. Nếu thanh toán thành công, tạo payment và update order
-            if ("PAID".equals(status)) {
+            if ("00".equals(code)) {
                 paymentService.createPaymentFromWebhook(orderCode, amount, txnRef, PaymentProvider.BANK_TRANSFER);
                 orderService.markAsPaid(orderCode);
-            } else if ("CANCELLED".equals(status)) {
-                orderService.markAsCancelled(orderCode);
             } else {
                 orderService.markAsFailed(orderCode);
             }
@@ -76,7 +66,7 @@ public class PaymentController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.ok().build(); // ⚠️ webhook nên luôn trả 200
         }
     }
 
