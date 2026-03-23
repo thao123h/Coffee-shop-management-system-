@@ -5,10 +5,7 @@ import com.coffeeshop.management.dto.response.ApiResponse;
 import com.coffeeshop.management.dto.response.MessageResponse;
 import com.coffeeshop.management.dto.response.OrderResponse;
 import com.coffeeshop.management.entity.Order;
-import com.coffeeshop.management.enums.ErrorCode;
-import com.coffeeshop.management.enums.OrderStatus;
-import com.coffeeshop.management.enums.PaymentProvider;
-import com.coffeeshop.management.enums.PaymentStatus;
+import com.coffeeshop.management.enums.*;
 import com.coffeeshop.management.service.OrderService;
 import com.coffeeshop.management.service.UserService;
 import com.coffeeshop.management.service.VoucherService;
@@ -20,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,9 +32,25 @@ public class OrderController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<OrderResponse>>> getAllOrders(
-            @RequestParam(defaultValue = "0") int page, @RequestParam int size
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam int size,
+
+            @RequestParam(required = false) Long orderId,
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) PaymentMethod paymentMethod,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate
     ) {
-        Page<OrderResponse> orderResponsePage = orderService.getAllOrders(page, size);
+        Page<OrderResponse> orderResponsePage = orderService.getAllOrders(
+                page, size, orderId, status, paymentMethod, fromDate, toDate
+        );
+
         return ResponseEntity.ok(ApiResponse.success(orderResponsePage));
     }
 

@@ -8,6 +8,7 @@ import com.coffeeshop.management.dto.response.OrderResponse;
 import com.coffeeshop.management.dto.response.ToppingResponse;
 import com.coffeeshop.management.entity.*;
 import com.coffeeshop.management.enums.OrderStatus;
+import com.coffeeshop.management.enums.PaymentMethod;
 import com.coffeeshop.management.enums.PaymentProvider;
 import com.coffeeshop.management.enums.PaymentStatus;
 import com.coffeeshop.management.mapper.OrderItemMapper;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,10 +89,28 @@ public class OrderService {
         return orderResponse;
     }
 
-    public Page<OrderResponse> getAllOrders(int page, int size) {
+    public Page<OrderResponse> getAllOrders(
+            int page,
+            int size,
+            Long orderId,
+            OrderStatus status,
+            PaymentMethod paymentMethod,
+            LocalDate fromDate,
+           LocalDate  toDate
+    ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Order> orders = orderRepository.findAll(pageable);
-        return orders.map(order -> getOrderResponseById(order.getId()));
+        LocalDateTime fromDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
+        LocalDateTime toDateTime = toDate != null ? toDate.atTime(23, 59, 59) : null;
+        Page<Order> orders = orderRepository.filterOrders(
+                orderId,
+                status,
+                paymentMethod,
+                fromDateTime,
+                toDateTime,
+                pageable
+        );
+
+        return orders.map( order -> orderMapper.toOrderResponse(order));
     }
     public OrderResponse completeOrder(Long id) {
         Order order = orderRepository.findById(id).get();

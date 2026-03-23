@@ -15,12 +15,33 @@ export const cancelOrder = async (orderId) => {
   return response.data;
 };
 
-export const getAllOrders = async ( page = 0,size = 10 ) => {
-  const response = await axiosClient.get("/orders", {
-    params: { page, size }
-  });
+export const getAllOrders = async (
+  page = 0,
+  size = 10,
+  filters = {}
+) => {
+  const {
+    orderId,
+    status,
+    paymentMethod,
+    fromDate,
+    toDate,
+  } = filters;
+
+  const params = {
+    page,
+    size,
+    ...(orderId && { orderId }),
+    ...(status && { status }),
+    ...(paymentMethod && { paymentMethod }),
+    ...(fromDate && { fromDate }),
+    ...(toDate && { toDate }),
+  };
+
+  const response = await axiosClient.get("/orders", { params });
+
   return response.data;
-}
+};
 
 export const getOrderById = async (id) => {
   const response = await axiosClient.get(`/orders/${id}`);

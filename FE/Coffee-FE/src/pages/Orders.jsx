@@ -5,38 +5,55 @@ import { ShoppingBag, Eye } from "lucide-react";
 import { Pagination } from "../components/Pagination";
 import { getAllOrders } from "@/service/OrderService";
 import { OrderDetailModal } from "../components/OrderDetailModal";
+
 export default function Orders() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-  const [selectedOrder, setSelectedOrder] = useState(null);
-const [openModal, setOpenModal] = useState(false);
 
   const [orders, setOrders] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
+
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+
+  // ✅ Filters
+  const [searchId, setSearchId] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const totalPages = Math.ceil(totalElements / itemsPerPage);
 
   const formatVND = (amount) =>
     new Intl.NumberFormat("vi-VN").format(amount) + " ₫";
 
+  // ✅ Fetch API
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await getAllOrders(
-          currentPage - 1,
-          itemsPerPage
-        );
+        const res = await getAllOrders(currentPage - 1, itemsPerPage, {
+          orderId: searchId,
+          status: statusFilter,
+          paymentMethod: paymentFilter,
+          fromDate,
+          toDate,
+        });
 
         setOrders(res.data.content);
         setTotalElements(res.data.totalElements);
-        console.log("Fetched orders:", res.data.content);
       } catch (error) {
         console.error("Error fetching orders:", error);
       }
     };
 
     fetchOrders();
-  }, [currentPage]);
+  }, [currentPage, searchId, statusFilter, paymentFilter, fromDate, toDate]);
+
+  // ✅ Reset page khi filter đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchId, statusFilter, paymentFilter, fromDate, toDate]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -64,6 +81,75 @@ const [openModal, setOpenModal] = useState(false);
         </div>
       </div>
 
+      {/* ✅ Filters */}
+      <div className="bg-white p-4 rounded-xl shadow-md mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Search ID */}
+          <input
+            type="text"
+            placeholder="🔍 Tìm theo mã đơn..."
+            className="border rounded-lg px-3 py-2 w-full"
+            value={searchId}
+            onChange={(e) => setSearchId(e.target.value)}
+          />
+
+          {/* Status */}
+          <select
+            className="border rounded-lg px-3 py-2"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="COMPLETED">Hoàn thành</option>
+            <option value="PENDING">Chờ</option>
+            <option value="CANCELED">Đã hủy</option>
+          </select>
+
+          {/* Payment */}
+          <select
+            className="border rounded-lg px-3 py-2"
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+          >
+            <option value="">Tất cả thanh toán</option>
+            <option value="CASH">Tiền mặt</option>
+            <option value="BANK">Chuyển khoản</option>
+          </select>
+
+          {/* From date */}
+          <input
+            type="date"
+            className="border rounded-lg px-3 py-2"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+          />
+
+          {/* To date */}
+          <input
+            type="date"
+            className="border rounded-lg px-3 py-2"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+          />
+        </div>
+
+        {/* Reset */}
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={() => {
+              setSearchId("");
+              setStatusFilter("");
+              setPaymentFilter("");
+              setFromDate("");
+              setToDate("");
+            }}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+          >
+            Reset filter
+          </button>
+        </div>
+      </div>
+
       {/* Orders Table */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <table className="w-full">
@@ -72,28 +158,21 @@ const [openModal, setOpenModal] = useState(false);
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                 {t("orderID")}
               </th>
-
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                 {t("items")}
               </th>
-              
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                 {t("total")}
               </th>
-              
-
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                 {t("status")}
               </th>
-               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                 Phương thức thanh toán
               </th>
-
-
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-               Thời gian tạo
+                Thời gian tạo
               </th>
-
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                 {t("actions")}
               </th>
@@ -102,22 +181,14 @@ const [openModal, setOpenModal] = useState(false);
 
           <tbody className="divide-y divide-gray-200">
             {orders.map((order) => (
-              <tr
-                key={order.id}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  #{order.id}
-                </td>
-
-                <td className="px-6 py-4 text-sm text-gray-700">
+              <tr key={order.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 font-medium">#{order.id}</td>
+                <td className="px-6 py-4">
                   {order.orderItems?.length || 0}
                 </td>
-
-                <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                <td className="px-6 py-4 font-semibold">
                   {formatVND(order.finalAmount)}
                 </td>
-
                 <td className="px-6 py-4">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
@@ -133,26 +204,24 @@ const [openModal, setOpenModal] = useState(false);
                       : order.status}
                   </span>
                 </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                  {order.paymentMethod === "CASH" ? "Tiền mặt" : "QR/Chuyển khoản"}
+                <td className="px-6 py-4">
+                  {order.paymentMethod === "CASH"
+                    ? "Tiền mặt"
+                    : "QR/Chuyển khoản"}
                 </td>
-
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(order.createdAt).toLocaleString("vi-VN")}
                 </td>
-
                 <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    <button
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setOpenModal(true);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  </div>
+                  <button
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setOpenModal(true);
+                    }}
+                  >
+                    <Eye size={18} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -169,11 +238,12 @@ const [openModal, setOpenModal] = useState(false);
         />
       </div>
 
+      {/* Modal */}
       <OrderDetailModal
-  open={openModal}
-  order={selectedOrder}
-  onClose={() => setOpenModal(false)}
-/>
+        open={openModal}
+        order={selectedOrder}
+        onClose={() => setOpenModal(false)}
+      />
     </div>
   );
 }
