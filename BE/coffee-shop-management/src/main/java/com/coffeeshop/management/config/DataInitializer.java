@@ -1,21 +1,24 @@
 package com.coffeeshop.management.config;
 
-import com.coffeeshop.management.entity.Category;
-import com.coffeeshop.management.entity.Product;
-import com.coffeeshop.management.entity.Topping;
-import com.coffeeshop.management.entity.User;
+import com.coffeeshop.management.entity.*;
+import com.coffeeshop.management.enums.OrderStatus;
+import com.coffeeshop.management.enums.PaymentMethod;
 import com.coffeeshop.management.enums.Role;
-import com.coffeeshop.management.repository.CategoryRepository;
-import com.coffeeshop.management.repository.ProductRepository;
-import com.coffeeshop.management.repository.ToppingRepository;
-import com.coffeeshop.management.repository.UserRepository;
+import com.coffeeshop.management.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Random;
+import java.util.Optional;
 import java.util.stream.IntStream;
+import java.util.stream.Collectors;
+
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +27,10 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final ToppingRepository toppingRepository;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -79,5 +85,91 @@ public class DataInitializer implements CommandLineRunner {
             });
             System.out.println("Initialized sample toppings.");
         }
+//
+//        // Init Product Variants if missing
+//        seedProductVariants();
+//
+//        // Init Orders for Revenue Testing
+//        if (orderRepository.count() == 0) {
+//            seedOrders();
+//        }
+//    }
+//
+//    @Transactional
+//    public void seedProductVariants() {
+//        productRepository.findAll().forEach(product -> {
+//            if (productVariantRepository.findByProductId(product.getId()).isEmpty()) {
+//                ProductVariant variant = ProductVariant.builder()
+//                        .product(product)
+//                        .name("Mặc định")
+//                        .price(new BigDecimal(25000 + (Math.random() * 20000)))
+//                        .skuCode("SKU-" + product.getId())
+//                        .isActive(true)
+//                        .build();
+//                productVariantRepository.save(variant);
+//            }
+//        });
+//        System.out.println("Initialized missing product variants.");
+//    }
+//
+//    @Transactional
+//    public void seedOrders() {
+//        User staff = userRepository.findByUsername("admin").orElse(null);
+//        if (staff == null) {
+//            staff = userRepository.findAll().stream().findFirst().orElse(null);
+//        }
+//        if (staff == null) return;
+//
+//        List<ProductVariant> variants = productVariantRepository.findAll();
+//        if (variants.isEmpty()) return;
+//
+//        Random random = new Random();
+//        for (int i = 0; i < 10; i++) {
+//            // Random date in last 7 days
+//            LocalDateTime createdAt = LocalDateTime.now()
+//                    .minusDays(random.nextInt(7))
+//                    .minusHours(random.nextInt(23))
+//                    .minusMinutes(random.nextInt(59));
+//
+//            Order order = Order.builder()
+//                    .staff(staff)
+//                    .customerName("Khách hàng " + (i + 1))
+//                    .totalAmount(BigDecimal.ZERO)
+//                    .discountAmount(BigDecimal.ZERO)
+//                    .finalAmount(BigDecimal.ZERO)
+//                    .paymentMethod(PaymentMethod.CASH)
+//                    .status(OrderStatus.COMPLETED)
+//                    .createdAt(createdAt)
+//                    .build();
+//
+//            // Save order first to get ID
+//            order = orderRepository.save(order);
+//
+//            BigDecimal total = BigDecimal.ZERO;
+//            int numItems = random.nextInt(3) + 1;
+//            for (int j = 0; j < numItems; j++) {
+//                ProductVariant pv = variants.get(random.nextInt(variants.size()));
+//                int qty = random.nextInt(3) + 1;
+//                BigDecimal itemPrice = pv.getPrice() != null ? pv.getPrice() : new BigDecimal(30000);
+//                BigDecimal itemTotal = itemPrice.multiply(new BigDecimal(qty));
+//
+//                OrderItem item = OrderItem.builder()
+//                        .order(order)
+//                        .productVariant(pv)
+//                        .productName(pv.getProduct().getName())
+//                        .variantName(pv.getName())
+//                        .unitPrice(itemPrice)
+//                        .quantity(qty)
+//                        .build();
+//
+//                orderItemRepository.save(item);
+//                total = total.add(itemTotal);
+//            }
+//
+//            order.setTotalAmount(total);
+//            order.setFinalAmount(total);
+//            orderRepository.save(order);
+//        }
+//        System.out.println("Initialized 10 sample orders for revenue testing.");
     }
 }

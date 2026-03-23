@@ -84,8 +84,8 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/payments/webhook").permitAll()
 
-                                // ADMIN-only endpoints
-                                .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                                // MANAGER + ADMIN: access dashboard and system stats
+                                .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "MANAGER")
 
                                 // MANAGER + ADMIN: manage user accounts
                                 .requestMatchers("/users/**").hasAnyAuthority("MANAGER", "ADMIN")

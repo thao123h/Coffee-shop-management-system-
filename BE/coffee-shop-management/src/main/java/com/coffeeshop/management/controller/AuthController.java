@@ -21,6 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 
@@ -82,5 +84,23 @@ public class AuthController {
     userRepository.save(user);
 
     return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+  }
+
+  @GetMapping("/me")
+  public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+    if (authentication == null) {
+      return ResponseEntity.status(401).body(new MessageResponse("Not authenticated"));
+    }
+    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+    List<String> roles = userDetails.getAuthorities().stream()
+        .map(item -> item.getAuthority())
+        .collect(Collectors.toList());
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("id", userDetails.getId());
+    response.put("username", userDetails.getUsername());
+    response.put("roles", roles);
+
+    return ResponseEntity.ok(response);
   }
 }
