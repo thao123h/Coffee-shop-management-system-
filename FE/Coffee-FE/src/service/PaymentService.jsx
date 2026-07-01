@@ -36,7 +36,7 @@ export const createPaymentApi = async (orderId) => {
  */
 export const getPaymentStatusApi = async (orderId) => {
     try {
-        const res = await axiosClient.get(`/payments/status/${orderId}`);
+        const res = await axiosClient.get(`/payments/order/${orderId}`);
         return res.data;
     } catch (err) {
         console.error("get payment status error:", err.response || err);

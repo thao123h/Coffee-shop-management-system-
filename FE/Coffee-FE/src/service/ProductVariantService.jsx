@@ -2,7 +2,7 @@ import axiosClient from "./axiosClient";
 
 export const getProductVariantsByIdProduct = async (productId, activeOnly = false) => {
   try {
-    const res = await axiosClient.get("/product-variants", {
+    const res = await axiosClient.get("/variants", {
       params: {
         productId: productId,
         activeOnly: activeOnly,

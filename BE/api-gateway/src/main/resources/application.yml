@@ -1,0 +1,91 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # ── User Service ────────────────────────────────────────────────
+        - id: user-service-auth
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**
+        - id: user-service-users
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+
+        # ── Menu Service ────────────────────────────────────────────────
+        - id: menu-service-categories
+          uri: lb://menu-service
+          predicates:
+            - Path=/api/categories/**
+        - id: menu-service-products
+          uri: lb://menu-service
+          predicates:
+            - Path=/api/products/**
+        - id: menu-service-variants
+          uri: lb://menu-service
+          predicates:
+            - Path=/api/variants/**
+        - id: menu-service-toppings
+          uri: lb://menu-service
+          predicates:
+            - Path=/api/toppings/**
+
+        # ── Promotion Service ───────────────────────────────────────────
+        - id: promotion-service-vouchers
+          uri: lb://promotion-service
+          predicates:
+            - Path=/api/vouchers/**
+
+        # ── Order Service ───────────────────────────────────────────────
+        - id: order-service-orders
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+        - id: order-service-dashboard
+          uri: lb://order-service
+          predicates:
+            - Path=/api/dashboard/**
+
+        # ── Order Service — Admin Dashboard ────────────────────────────
+        - id: order-service-admin
+          uri: lb://order-service
+          predicates:
+            - Path=/api/admin/**
+
+        # ── Payment Service ─────────────────────────────────────────────
+        - id: payment-service-payments
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+app:
+  jwt:
+    secret: hYBBOPwzM2+qj25Zdr8Dxe9adn12JCTwMixoLZMfBC4=
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

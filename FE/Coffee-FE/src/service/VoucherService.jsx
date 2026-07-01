@@ -23,7 +23,7 @@ export const deleteVoucher = async (id) => {
 };
 
 export const toggleVoucherActive = async (id) => {
-  const res = await axiosClient.patch(`/vouchers/${id}/toggle-active`);
+  const res = await axiosClient.patch(`/vouchers/${id}/toggle`);
   return res.data;
 };
 

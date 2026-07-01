@@ -1,0 +1,47 @@
+server:
+  port: 8085
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/coffeeshop?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+services:
+  order:
+    url: http://localhost:8084/api
+
+internal:
+  service-token: coffee-internal-secret-2024
+
+payos:
+  client-id: 9ac43104-ed72-4f05-982e-1f1cc3a71869
+  api-key: 29e9d422-0dbd-48fe-8246-708c18b80381
+  checksum-key: 5323467ca16313e9b1984f48bb5ba11fdc006f74a5629b8ae97a5c374ffb317a
+  return-url: http://localhost:3000/dashboard/payment-success
+  cancel-url: http://localhost:3000/dashboard/payment-cancel
+
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 3000
+        read-timeout: 5000
